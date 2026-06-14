@@ -7,14 +7,8 @@
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='80' font-size='80'%3E📊%3C/text%3E%3C/svg%3E">
   <style>
     :root {
-      --bg: #fafaf7;
-      --card: #fff;
-      --ink: #111827;
-      --muted: #6b7280;
-      --line: #e5e7eb;
-      --accent: #b91c1c;
-      --green: #047857;
-      --indigo: #4338ca;
+      --bg: #fafaf7; --card: #fff; --ink: #111827; --muted: #6b7280;
+      --line: #e5e7eb; --accent: #b91c1c; --green: #047857; --indigo: #4338ca;
     }
     * { box-sizing: border-box; }
     body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif; background: var(--bg); color: var(--ink); line-height: 1.5; }
@@ -80,15 +74,15 @@
 </head>
 <body>
   <header>
-    <h1>📊 Baybos Statement Reader <span style="font-size:11px;opacity:.75;margin-left:8px">v5 · column-position parser</span></h1>
-    <p>Drop a bank statement (PDF). Auto-categorized for Baybos. Everything stays in your browser.</p>
+    <h1>📊 Baybos Statement Reader <span style="font-size:11px;opacity:.75;margin-left:8px">v6 · rotated-PDF parser</span></h1>
+    <p>Drop a GTCO statement (PDF). Every page processed. Debit vs credit determined by column position, not guessing.</p>
   </header>
 
   <div class="container">
     <div id="drop" class="drop-zone">
       <div class="icon">📥</div>
       <p><strong>Drop a statement here</strong> or click to choose</p>
-      <p style="font-size: 11px;">Supports GTCO. Zenith / Access / FBN coming. All pages processed. Debit vs credit determined by column position, not guesswork.</p>
+      <p style="font-size: 11px;">GTCO format. All pages processed. PDF text is internally 90°-rotated — parser handles it.</p>
       <input type="file" id="fileInput" accept="application/pdf,.pdf" hidden>
     </div>
     <div id="status"></div>
@@ -106,10 +100,7 @@
       <div class="grid" id="summary"></div>
 
       <div class="panel">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-          <h2>💸 Expenses by category</h2>
-          <button class="ghost" onclick="toggleSection('expenseTable')">collapse</button>
-        </div>
+        <h2>💸 Expenses by category</h2>
         <table id="expenseTable">
           <thead><tr><th>Category</th><th class="num">Amount (₦)</th><th class="num">Txns</th><th style="width: 40%;">% of expenses</th></tr></thead>
           <tbody></tbody>
@@ -117,10 +108,7 @@
       </div>
 
       <div class="panel">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-          <h2>💰 Income (credits) by source</h2>
-          <button class="ghost" onclick="toggleSection('incomeTable')">collapse</button>
-        </div>
+        <h2>💰 Income (credits) by source</h2>
         <table id="incomeTable">
           <thead><tr><th>Source</th><th class="num">Amount (₦)</th><th class="num">Txns</th><th style="width: 40%;">% of income</th></tr></thead>
           <tbody></tbody>
@@ -130,8 +118,7 @@
       <div class="panel">
         <h2>📋 Transactions <span id="overrideCount" style="font-size: 11px; color: var(--muted);"></span></h2>
         <p style="font-size: 12px; color: var(--muted); margin-bottom: 12px;">
-          To re-categorize, change the dropdown. Or download the CSV, fill in the Category column for Uncategorized rows,
-          then re-upload via <strong>Import master CSV</strong> — every category you fill in becomes a rule applied to future statements.
+          Change a row's category in the dropdown — your choice is remembered for next time. Or download CSV, fill the Category column in Excel, then click <strong>Import master CSV</strong>.
         </p>
         <div class="quick-filters" id="catFilters"></div>
         <div class="controls">
@@ -164,24 +151,23 @@
         <summary>🔧 Debug · column positions + parsing diagnostics</summary>
         <div class="panel" style="margin-top: 10px;">
           <div id="debugSummary" style="font-size: 12px; margin-bottom: 8px;"></div>
-          <button id="downloadStructured">Download structured page-row dump</button>
-          <pre class="raw" id="rawText"></pre>
+          <button id="downloadStructured">Download per-page item dump</button>
         </div>
       </details>
     </div>
 
     <div id="emptyState" class="help">
-      <strong>How this tool works:</strong>
+      <strong>How v6 works:</strong>
       <ol>
-        <li>Drop a bank statement PDF. All pages are read in your browser. Nothing is uploaded.</li>
-        <li>The tool detects the bank, locates the Debits/Credits/Balance column positions in the table header, and reads each transaction by column. Debit vs credit is determined by which column the amount sits in — not guesswork.</li>
-        <li>Every transaction is auto-categorized using rules tuned for Baybos's "GAPSLITE" expense narration.</li>
-        <li>For each row you can change the category in the dropdown. The tool remembers your choice and applies it next time the same description appears.</li>
-        <li>For bulk corrections: download the categorized CSV, fill in the Category column in Excel for any Uncategorized or wrong rows, then click <strong>Import master CSV</strong>.</li>
+        <li>Drop a GTCO bank statement PDF. All pages are read in your browser. Nothing is uploaded.</li>
+        <li>The PDF is 90°-rotated under the hood, so the parser flips the axis — Y identifies which column (Debits, Credits, Balance, Remarks, etc.), X identifies which transaction row. Debit vs credit is determined by which column the amount sits in — no guesswork.</li>
+        <li>Every transaction is auto-categorized using rules tuned for Baybos's GAPSLITE narration.</li>
+        <li>Change any row's category in the dropdown — your choice is remembered and applied next time the same description appears.</li>
+        <li>For bulk corrections: download the categorized CSV, fill Category column in Excel for any Uncategorized or wrong rows, then click <strong>Import master CSV</strong>.</li>
       </ol>
     </div>
 
-    <p class="footer-note">Baybos Home School · open source · works offline · v5 · column-position parser · supports GTCO today, Zenith/Access/FBN scaffolded for next</p>
+    <p class="footer-note">Baybos Home School · open source · works offline · v6 · rotated-PDF column-major parser</p>
   </div>
 
   <div id="toast" class="toast"></div>
@@ -191,7 +177,7 @@
   pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
   // ============================================================================
-  // CATEGORIES & BUILTIN RULES
+  // CATEGORIES & RULES (unchanged from v5)
   // ============================================================================
   const CATEGORIES = [
     'School Fees (Parents)', 'Other Income', 'Refunds',
@@ -236,11 +222,7 @@
     [/reversal|refund/i, 'Refunds'],
   ];
 
-  // ============================================================================
-  // MASTER RULES & USER OVERRIDES
-  // ============================================================================
   let masterRules = { exact: {}, regex: [] };
-
   async function loadMasterRules() {
     try {
       const res = await fetch('master-rules.json?t=' + Date.now());
@@ -250,29 +232,18 @@
       masterRules.regex = (data.regex_rules || []).map(([pat, cat]) => [new RegExp(pat, 'i'), cat]);
       const count = Object.keys(masterRules.exact).length + masterRules.regex.length;
       if (count > 0) document.getElementById('masterRulesBadge').textContent = `Shared rules: ${count}`;
-    } catch (e) {
-      console.warn('master-rules.json not loaded:', e.message);
-    }
+    } catch (e) {}
   }
   loadMasterRules();
 
   const OVERRIDE_KEY = 'baybos_statement_overrides_v1';
   let _unsavedCount = 0;
-
-  function loadOverrides() {
-    try { return JSON.parse(localStorage.getItem(OVERRIDE_KEY) || '{}'); }
-    catch { return {}; }
-  }
+  function loadOverrides() { try { return JSON.parse(localStorage.getItem(OVERRIDE_KEY) || '{}'); } catch { return {}; } }
   function saveOverrides(map) { localStorage.setItem(OVERRIDE_KEY, JSON.stringify(map)); }
 
   function descKey(remarks) {
     if (!remarks) return '';
-    return remarks
-      .toLowerCase()
-      .replace(/\d{8,}/g, '#')
-      .replace(/\s+/g, ' ')
-      .trim()
-      .slice(0, 240);
+    return remarks.toLowerCase().replace(/\d{8,}/g, '#').replace(/\s+/g, ' ').trim().slice(0, 240);
   }
 
   function categorize(remarks) {
@@ -287,319 +258,171 @@
     for (const ok of Object.keys(masterRules.exact)) {
       if (ok.length >= 15 && key.includes(ok)) return masterRules.exact[ok];
     }
-    for (const [pat, cat] of masterRules.regex) {
-      if (pat.test(remarks)) return cat;
-    }
-    for (const [pat, cat] of BUILTIN_RULES) {
-      if (pat.test(remarks)) return cat;
-    }
+    for (const [pat, cat] of masterRules.regex) if (pat.test(remarks)) return cat;
+    for (const [pat, cat] of BUILTIN_RULES) if (pat.test(remarks)) return cat;
     return 'Uncategorized';
   }
 
   // ============================================================================
-  // PDF EXTRACTION — returns structured pages with item positions preserved
+  // PARSER — rotated-PDF column-major (verified against actual GTCO statement)
   // ============================================================================
+  const DATE_RX_STRICT = /^\d{1,2}-(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)-\d{4}$/;
+  const NUM_RX_STRICT = /^\d{1,3}(?:,\d{3})+(?:\.\d+)?$|^\d+\.\d{2}$/;
+  function parseAmt(s) {
+    const n = parseFloat(String(s).replace(/[,\s]/g, ''));
+    return isNaN(n) ? 0 : n;
+  }
+
   /**
-   * Extract per-page structured rows from the PDF.
-   * Each row is an array of items: { x, str, width, y }, sorted left-to-right.
-   * Rows are sorted top-to-bottom within each page.
+   * Extract per-page items from the PDF. For each item, we keep:
+   *   { page, x, y, str }
+   * where x and y are the raw transform coordinates (before any axis flip).
+   * In the GTCO statement the text is rendered with a 90° clockwise rotation,
+   * meaning what looks like a horizontal row to a human is actually a vertical
+   * column in PDF text-rendering coordinates. So Y identifies the table column
+   * (Debits / Credits / Balance / Remarks / …) and X identifies the transaction
+   * within that column.
    */
-  async function extractPdfStructured(file, onProgress) {
+  async function extractAllItems(file, onProgress) {
     const arrayBuffer = await file.arrayBuffer();
     const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
     const totalPages = pdf.numPages;
-    const pages = [];
-    let totalItems = 0;
-    let fullText = '';  // also build text for metadata extraction + bank detection
+    const allItems = [];
+    let textForBank = '';
 
     for (let p = 1; p <= totalPages; p++) {
       onProgress && onProgress(p, totalPages);
       const page = await pdf.getPage(p);
       const tc = await page.getTextContent();
-      const items = tc.items;
-      totalItems += items.length;
-
-      const yMap = new Map();
-      for (const item of items) {
-        if (!item.str.trim()) continue;
-        const y = Math.round(item.transform[5] / 2) * 2;
-        if (!yMap.has(y)) yMap.set(y, []);
-        yMap.get(y).push({
-          x: item.transform[4],
-          y: item.transform[5],
-          str: item.str,
-          width: item.width || (item.str.length * 5),
+      for (const item of tc.items) {
+        const s = item.str.trim();
+        if (!s) continue;
+        allItems.push({
+          page: p,
+          x: Math.round(item.transform[4]),
+          y: Math.round(item.transform[5]),
+          str: s,
         });
+        textForBank += s + '\n';
       }
-
-      const rows = [...yMap.entries()]
-        .sort((a, b) => b[0] - a[0])  // descending y = top-first
-        .map(([y, rowItems]) => ({
-          y,
-          items: rowItems.sort((a, b) => a.x - b.x),
-        }));
-
-      // Also build a per-page text representation for metadata + bank detection
-      for (const row of rows) {
-        let line = '';
-        let prevEnd = -Infinity;
-        for (const item of row.items) {
-          if (line) {
-            const gap = item.x - prevEnd;
-            if (gap > 8) line += ' '.repeat(Math.min(8, Math.max(2, Math.round(gap / 6))));
-            else line += ' ';
-          }
-          line += item.str;
-          prevEnd = item.x + item.width;
-        }
-        fullText += line + '\n';
-      }
-      fullText += '\n';
-
-      pages.push({ pageNum: p, rows });
     }
-    return { pages, text: fullText, totalPages, totalItems };
+    return { items: allItems, totalPages, text: textForBank };
   }
 
-  // ============================================================================
-  // GTCO BANK ADAPTER — column-position parser
-  // ============================================================================
-  const MONTHS_RX = /^\d{1,2}-(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)-\d{4}$/;
-  const NUM_ITEM_RX = /^\d{1,3}(?:,\d{3})+(?:\.\d+)?$|^\d+\.\d{2}$/;
-
-  function parseAmt(s) {
-    if (!s) return 0;
-    const n = parseFloat(String(s).replace(/[,\s]/g, ''));
-    return isNaN(n) ? 0 : n;
-  }
-
-  const GtcoAdapter = {
-    name: 'Guaranty Trust Bank (GTCO)',
-    code: 'gtco',
-
-    detect(text) {
-      return /Guaranty\s+Trust\s+Bank|GTBank|GTCO/i.test(text);
-    },
-
-    extractMeta(text) {
-      const m = (rx) => { const r = text.match(rx); return r ? r[1].trim() : null; };
-      const parseN = (s) => s ? parseFloat(s.replace(/,/g, '')) : null;
-      return {
-        period: m(/Statement Period\s*:?\s*([^\n]+)/i),
-        accountNo: m(/Account No\s+([^\s\n]+)/i),
-        accountType: m(/Account Type\s+([^\n]+)/i),
-        currency: m(/Currency\s+([^\n]+)/i),
-        openingBalance: parseN(m(/Opening Balance\s+([\d,]+\.\d+)/i)),
-        closingBalance: parseN(m(/Closing Balance\s+([\d,]+\.\d+)/i)),
-        totalDebit: parseN(m(/Total Debit\s+([\d,]+\.\d+)/i)),
-        totalCredit: parseN(m(/Total Credit\s+([\d,]+\.\d+)/i)),
-      };
-    },
-
-    /**
-     * Locate column positions by finding the table header row.
-     * The header has labels: "Trans. Date", "Value. Date", "Reference", "Debits", "Credits", "Balance", "Originating Branch", "Remarks"
-     * Returns: { debitX, creditX, balanceX, remarksX } or null if not found.
-     */
-    locateColumns(pages) {
-      for (const page of pages) {
-        for (const row of page.rows) {
-          // Build a position map for this row's labels
-          const labels = {};
-          for (const item of row.items) {
-            const t = item.str.trim().replace(/\.$/, '').toLowerCase();
-            if (t === 'debits') labels.debit = item.x;
-            else if (t === 'credits') labels.credit = item.x;
-            else if (t === 'balance') labels.balance = item.x;
-            else if (t === 'remarks') labels.remarks = item.x;
-            else if (t === 'originating branch') labels.branch = item.x;
-          }
-          if (labels.debit && labels.credit && labels.balance) {
-            return {
-              debitX: labels.debit,
-              creditX: labels.credit,
-              balanceX: labels.balance,
-              remarksX: labels.remarks || (labels.branch ? labels.branch + 100 : null),
-              branchX: labels.branch,
-            };
-          }
-        }
-      }
-      return null;
-    },
-
-    /**
-     * Detect "noise" rows — table headers (repeated on each page), page footers,
-     * statement metadata block on page 1, etc. These should be skipped entirely.
-     */
-    isNoiseRow(row) {
-      const text = row.items.map(i => i.str).join(' ');
-      const tl = text.toLowerCase();
-      if (/this is a computer generated email/i.test(text)) return true;
-      if (/customer information unit/i.test(tl)) return true;
-      if (/guaranty trust bank plc systems/i.test(tl)) return true;
-      if (/^fax 01-2694276/i.test(text.trim())) return true;
-      if (/^\s*trans.?\s*date.*value.?\s*date/i.test(text)) return true;
-      if (/^\s*reference\s+debits\s+credits/i.test(text)) return true;
-      if (/customer statement/i.test(tl)) return true;
-      if (/^baybos home school\s*$/i.test(text.trim())) return true;
-      if (/^\s*(statement period|print\.?\s*date|branch name|account no|internal reference|address|account type|currency|total (debit|credit)|opening balance|closing balance|usable balance)\s/i.test(text)) return true;
-      if (/^\s*abuja\s+fct\s*$/i.test(text.trim())) return true;
-      if (/^\s*no \d+\s+aswan/i.test(text.trim())) return true;
-      return false;
-    },
-
-    /**
-     * Parse transactions using column-position-based detection.
-     * @param {Object} structured - { pages, text, ... } from extractPdfStructured
-     * @param {Object} meta - metadata extracted earlier
-     * @param {Object} columns - column positions from locateColumns
-     */
-    parseTxnsStructured(structured, meta, columns) {
-      const { pages } = structured;
-      const { debitX, creditX, balanceX, remarksX, branchX } = columns;
-      const COL_TOL = 80;  // tolerance for matching a number to a column
-
-      const txns = [];
-      let current = null;
-
-      const flush = () => {
-        if (current) {
-          current.remarks = current.remarks.replace(/\s+/g, ' ').trim();
-          // Strip standalone "635 AKIN ADESOLA" if it appears in remarks
-          current.remarks = current.remarks.replace(/\d{3}\s+AKIN\s+ADESOLA/gi, '').replace(/\s+/g, ' ').trim();
-          // Strip leading apostrophes / reference fragments
-          current.remarks = current.remarks.replace(/^['`|\s]+/, '').trim();
-          txns.push(current);
-          current = null;
-        }
-      };
-
-      for (const page of pages) {
-        for (const row of page.rows) {
-          if (this.isNoiseRow(row)) continue;
-
-          // Check if this row starts a new transaction (has a date pair at the start)
-          const isStart = row.items.length >= 2 &&
-                          MONTHS_RX.test(row.items[0].str) &&
-                          MONTHS_RX.test(row.items[1].str);
-
-          if (isStart) {
-            // Save previous transaction
-            flush();
-
-            // Start a new one
-            current = {
-              transDate: row.items[0].str,
-              valueDate: row.items[1].str,
-              debit: 0,
-              credit: 0,
-              balance: 0,
-              remarks: '',
-            };
-
-            // Classify each numeric item by column position
-            const remarksTokens = [];
-            for (let i = 2; i < row.items.length; i++) {
-              const item = row.items[i];
-              const s = item.str.trim();
-              if (!s) continue;
-
-              if (NUM_ITEM_RX.test(s)) {
-                const n = parseAmt(s);
-                // Determine which column by x position
-                const distDebit = Math.abs(item.x - debitX);
-                const distCredit = Math.abs(item.x - creditX);
-                const distBalance = Math.abs(item.x - balanceX);
-                const minDist = Math.min(distDebit, distCredit, distBalance);
-
-                if (minDist > COL_TOL) {
-                  // Doesn't match any column cleanly — likely a phone number or reference. Skip.
-                  continue;
-                }
-                if (minDist === distDebit) current.debit = n;
-                else if (minDist === distCredit) current.credit = n;
-                else if (minDist === distBalance) current.balance = n;
-              } else if (remarksX !== null && item.x >= remarksX - 30) {
-                // Text item in the remarks column zone
-                remarksTokens.push(s);
-              } else if (remarksX === null && branchX !== null && item.x >= branchX + 50) {
-                // Heuristic when no remarks column header — anything well past branch column
-                remarksTokens.push(s);
-              } else if (remarksX === null && branchX === null) {
-                // No column anchors — fall back to "non-numeric, after 2 numbers" heuristic
-                remarksTokens.push(s);
-              }
-              // else: reference column, branch column — skip for remarks
-            }
-            current.remarks = remarksTokens.join(' ');
-          } else if (current) {
-            // Continuation row — append all text-ish items to current transaction's remarks.
-            // Skip numeric items (shouldn't appear in continuation but defensive).
-            // Skip items in reference column (x < debit column).
-            const tokens = [];
-            for (const item of row.items) {
-              const s = item.str.trim();
-              if (!s) continue;
-              if (NUM_ITEM_RX.test(s)) continue;
-              // Items before debit column are likely reference continuation — skip
-              if (item.x < debitX - 60) continue;
-              tokens.push(s);
-            }
-            if (tokens.length) current.remarks += ' ' + tokens.join(' ');
-          }
-        }
-      }
-      flush();
-
-      // Discard malformed transactions (no amount AND no balance)
-      return txns.filter(t => t.debit > 0 || t.credit > 0 || t.balance > 0);
-    },
-  };
-
-  // ============================================================================
-  // BANK SKELETONS (Zenith, Access, FBN)
-  // ============================================================================
-  const ZenithAdapter = {
-    name: 'Zenith Bank', code: 'zenith',
-    detect(t) { return /Zenith\s+Bank/i.test(t); },
-    extractMeta() { return {}; },
-    locateColumns() { return null; },
-    parseTxnsStructured() { throw new Error('Zenith parser not yet implemented. Send a sample to develop it.'); },
-    isNoiseRow() { return false; },
-  };
-  const AccessAdapter = {
-    name: 'Access Bank', code: 'access',
-    detect(t) { return /Access\s+Bank/i.test(t); },
-    extractMeta() { return {}; },
-    locateColumns() { return null; },
-    parseTxnsStructured() { throw new Error('Access parser not yet implemented.'); },
-    isNoiseRow() { return false; },
-  };
-  const FbnAdapter = {
-    name: 'First Bank of Nigeria (FBN)', code: 'fbn',
-    detect(t) { return /First\s+Bank\s+of\s+Nigeria|FirstBank/i.test(t); },
-    extractMeta() { return {}; },
-    locateColumns() { return null; },
-    parseTxnsStructured() { throw new Error('FBN parser not yet implemented.'); },
-    isNoiseRow() { return false; },
-  };
-
-  const BANK_ADAPTERS = [GtcoAdapter, ZenithAdapter, AccessAdapter, FbnAdapter];
-
-  function detectAdapter(rawText) {
-    for (const a of BANK_ADAPTERS) {
-      if (a.detect(rawText)) return a;
+  /**
+   * Find the column Y positions from the page-1 header labels.
+   * GTCO labels sit at x ≈ 389 (label column). Returns null if not found.
+   */
+  function locateColumnYs(items) {
+    const cols = {};
+    for (const it of items) {
+      if (it.page !== 1) continue;
+      if (it.x < 380 || it.x > 400) continue;
+      const t = it.str.toLowerCase();
+      if (t === 'trans. date' || t === 'trans.date' || t === 'trans date') cols.transDate = it.y;
+      else if (t === 'value. date' || t === 'value.date' || t === 'value date') cols.valueDate = it.y;
+      else if (t === 'reference') cols.reference = it.y;
+      else if (t === 'debits' || t === 'debit') cols.debit = it.y;
+      else if (t === 'credits' || t === 'credit') cols.credit = it.y;
+      else if (t === 'balance') cols.balance = it.y;
+      else if (t === 'originating branch') cols.branch = it.y;
+      else if (t === 'remarks') cols.remarks = it.y;
     }
+    if (cols.debit && cols.credit && cols.balance && cols.transDate && cols.remarks) return cols;
     return null;
   }
 
+  /**
+   * Extract metadata (period, account, header totals) from raw text.
+   */
+  function extractMeta(text) {
+    const m = rx => { const r = text.match(rx); return r ? r[1].trim() : null; };
+    const parseN = s => s ? parseFloat(s.replace(/,/g, '')) : null;
+    return {
+      period: m(/Statement Period\s*:?\s*([^\n]+)/i),
+      accountNo: m(/Account No\s*\n?\s*([^\s\n]+)/i),
+      openingBalance: parseN(m(/Opening Balance\s*\n?\s*([\d,]+\.\d+)/i)),
+      closingBalance: parseN(m(/Closing Balance\s*\n?\s*([\d,]+\.\d+)/i)),
+      totalDebit: parseN(m(/Total Debit\s*\n?\s*([\d,]+\.\d+)/i)),
+      totalCredit: parseN(m(/Total Credit\s*\n?\s*([\d,]+\.\d+)/i)),
+    };
+  }
+
+  /**
+   * Parse transactions using column-major axis flip.
+   * Page 1 has the column header on it; subsequent pages do not but use the
+   * same Y positions. Each page has its own X range (transactions on page N
+   * have different X values than transactions on page N+1).
+   */
+  function parseTransactions(items, columnYs) {
+    const Y_TOL = 2;
+    const X_TOL = 3;
+    const REMARKS_X_TOL = 8;
+    const txns = [];
+
+    // Group items by page for efficiency
+    const itemsByPage = new Map();
+    for (const it of items) {
+      if (!itemsByPage.has(it.page)) itemsByPage.set(it.page, []);
+      itemsByPage.get(it.page).push(it);
+    }
+
+    for (const [pageNum, pageItems] of itemsByPage.entries()) {
+      // Find transaction X positions = items at COLUMN_Y.transDate that match the date format.
+      // CRITICAL: filter to x >= 390 to skip the column label "Trans. Date" itself,
+      // and skip page-1 metadata at y=53/57 with x=101 (Print. Date etc.).
+      const dateItems = pageItems.filter(it =>
+        Math.abs(it.y - columnYs.transDate) <= Y_TOL &&
+        DATE_RX_STRICT.test(it.str) &&
+        it.x >= 390  // exclude the label column at x=389
+      );
+
+      // Build a lookup: for each transaction X, find items at the various column Ys
+      for (const dateIt of dateItems) {
+        const x = dateIt.x;
+        const findAt = (colY, xTol = X_TOL) =>
+          pageItems.find(it => Math.abs(it.y - colY) <= Y_TOL && Math.abs(it.x - x) <= xTol);
+
+        const valueItem = findAt(columnYs.valueDate);
+        const debitItem = findAt(columnYs.debit);
+        const creditItem = findAt(columnYs.credit);
+        const balanceItem = findAt(columnYs.balance);
+
+        const debit = (debitItem && NUM_RX_STRICT.test(debitItem.str)) ? parseAmt(debitItem.str) : 0;
+        const credit = (creditItem && NUM_RX_STRICT.test(creditItem.str)) ? parseAmt(creditItem.str) : 0;
+        const balance = (balanceItem && NUM_RX_STRICT.test(balanceItem.str)) ? parseAmt(balanceItem.str) : 0;
+
+        // Remarks: the primary remarks item plus continuation items at X values
+        // close to this transaction's X (multi-line narration).
+        const remarkItems = pageItems
+          .filter(it => Math.abs(it.y - columnYs.remarks) <= Y_TOL && it.x >= x - 1 && it.x <= x + REMARKS_X_TOL)
+          .sort((a, b) => a.x - b.x);
+        const remarks = remarkItems.map(it => it.str).join(' ').replace(/\s+/g, ' ').trim();
+
+        // Skip transactions with no debit, no credit, AND no balance — they're parsing artifacts.
+        if (debit === 0 && credit === 0 && balance === 0) continue;
+
+        txns.push({
+          page: pageNum,
+          xRow: x,
+          transDate: dateIt.str,
+          valueDate: valueItem ? valueItem.str : dateIt.str,
+          remarks,
+          debit,
+          credit,
+          balance,
+        });
+      }
+    }
+
+    return txns;
+  }
+
   // ============================================================================
-  // RENDER
+  // RENDER (unchanged from v5)
   // ============================================================================
   let state = {
-    adapter: null, meta: null, columns: null,
-    txns: [], rawText: '', structured: null,
+    meta: null, columnYs: null, txns: [], totalPages: 0, totalItems: 0,
     filter: 'all', search: '',
   };
 
@@ -617,20 +440,18 @@
     const net = totalCredit - totalDebit;
     const meta = state.meta || {};
     const opening = meta.openingBalance !== undefined ? meta.openingBalance : null;
-    const closing = meta.closingBalance !== undefined ? meta.closingBalance :
-                    (state.txns.length ? state.txns[state.txns.length - 1].balance : 0);
+    const closing = meta.closingBalance !== undefined ? meta.closingBalance : (state.txns.length ? state.txns[state.txns.length - 1].balance : 0);
 
-    document.getElementById('bankBadge').textContent = state.adapter ? state.adapter.name : 'Bank: unknown';
+    document.getElementById('bankBadge').textContent = 'Guaranty Trust Bank (GTCO)';
     document.getElementById('periodBadge').textContent = meta.period ? `Period: ${meta.period}` : '';
     document.getElementById('accountBadge').textContent = meta.accountNo ? `Account: ${meta.accountNo}` : '';
-    document.getElementById('columnBadge').textContent = state.columns
-      ? `Cols: D@${Math.round(state.columns.debitX)} C@${Math.round(state.columns.creditX)} B@${Math.round(state.columns.balanceX)}`
-      : '';
+    document.getElementById('columnBadge').textContent = state.columnYs
+      ? `Col Y: D=${state.columnYs.debit} C=${state.columnYs.credit} B=${state.columnYs.balance}` : '';
 
     const validation = (meta.totalDebit !== null && meta.totalCredit !== null)
       ? (Math.abs(totalDebit - meta.totalDebit) < 1 && Math.abs(totalCredit - meta.totalCredit) < 1
          ? '✓ matches header'
-         : `⚠ header says ${fmtShort(meta.totalDebit)} dr / ${fmtShort(meta.totalCredit)} cr`)
+         : `Δ vs header: ${(totalDebit - meta.totalDebit > 0 ? '+' : '')}${fmtShort(totalDebit - meta.totalDebit)} dr / ${(totalCredit - meta.totalCredit > 0 ? '+' : '')}${fmtShort(totalCredit - meta.totalCredit)} cr`)
       : '';
 
     document.getElementById('summary').innerHTML = `
@@ -709,11 +530,7 @@
       const row = document.createElement('tr');
       row.innerHTML = `
         <td>${t.transDate}</td>
-        <td>
-          <select class="category-select ${isOverridden ? 'modified' : ''}" data-idx="${txnIdx}">
-            ${selectOpts}
-          </select>
-        </td>
+        <td><select class="category-select ${isOverridden ? 'modified' : ''}" data-idx="${txnIdx}">${selectOpts}</select></td>
         <td><div class="row-desc">${escapeHtml(descTrunc)}</div></td>
         <td class="num debit">${t.debit ? fmtShort(t.debit) : ''}</td>
         <td class="num credit">${t.credit ? fmtShort(t.credit) : ''}</td>
@@ -730,26 +547,18 @@
         ov[descKey(t.remarks)] = e.target.value;
         saveOverrides(ov);
         _unsavedCount += 1;
-        if (_unsavedCount % 10 === 0) {
-          toast(`${_unsavedCount} edits saved. Click "Export rules JSON" to back them up.`, 'warn');
-        }
+        if (_unsavedCount % 10 === 0) toast(`${_unsavedCount} edits saved. Click "Export rules JSON" to back them up.`, 'warn');
         render();
       });
     });
   }
 
-  function escapeHtml(s) {
-    return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-  }
-  function toggleSection(id) { document.querySelector(`#${id} tbody`).classList.toggle('hidden'); }
+  function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
 
   // ============================================================================
-  // CSV / JSON IMPORT-EXPORT
+  // CSV / JSON IMPORT-EXPORT (unchanged)
   // ============================================================================
-  function csvEscape(v) {
-    if (v === null || v === undefined) return '""';
-    return `"${String(v).replace(/"/g, '""')}"`;
-  }
+  function csvEscape(v) { if (v === null || v === undefined) return '""'; return `"${String(v).replace(/"/g, '""')}"`; }
   function parseCsvLine(line) {
     const out = []; let cur = ''; let inQ = false;
     for (let i = 0; i < line.length; i++) {
@@ -761,13 +570,11 @@
     out.push(cur);
     return out;
   }
-
   function exportCategorized() {
     const rows = [['Trans Date', 'Value Date', 'Category', 'Description', 'Debit (NGN)', 'Credit (NGN)', 'Balance (NGN)']];
     state.txns.forEach(t => rows.push([t.transDate, t.valueDate, t.category, t.remarks, t.debit || '', t.credit || '', t.balance]));
     download('baybos-statement-categorized.csv', rows.map(r => r.map(csvEscape).join(',')).join('\n'), 'text/csv');
   }
-
   function exportSummary() {
     const totalDebit = state.txns.reduce((s, t) => s + t.debit, 0);
     const totalCredit = state.txns.reduce((s, t) => s + t.credit, 0);
@@ -777,13 +584,10 @@
       if (t.credit > 0) incByCat[t.category] = (incByCat[t.category] || 0) + t.credit;
     });
     const rows = [['Type', 'Category', 'Amount (NGN)', '% of Total']];
-    Object.entries(incByCat).sort((a, b) => b[1] - a[1]).forEach(([c, a]) =>
-      rows.push(['Income', c, a.toFixed(2), totalCredit ? (a / totalCredit * 100).toFixed(1) + '%' : '']));
-    Object.entries(expByCat).sort((a, b) => b[1] - a[1]).forEach(([c, a]) =>
-      rows.push(['Expense', c, a.toFixed(2), totalDebit ? (a / totalDebit * 100).toFixed(1) + '%' : '']));
+    Object.entries(incByCat).sort((a, b) => b[1] - a[1]).forEach(([c, a]) => rows.push(['Income', c, a.toFixed(2), totalCredit ? (a / totalCredit * 100).toFixed(1) + '%' : '']));
+    Object.entries(expByCat).sort((a, b) => b[1] - a[1]).forEach(([c, a]) => rows.push(['Expense', c, a.toFixed(2), totalDebit ? (a / totalDebit * 100).toFixed(1) + '%' : '']));
     download('baybos-statement-summary.csv', rows.map(r => r.map(csvEscape).join(',')).join('\n'), 'text/csv');
   }
-
   function importMasterCsv(file) {
     const reader = new FileReader();
     reader.onload = (e) => {
@@ -809,14 +613,12 @@
     };
     reader.readAsText(file);
   }
-
   function exportRules() {
     const ov = loadOverrides();
     const blob = JSON.stringify({ version: 1, exported_at: new Date().toISOString(), categories: CATEGORIES, overrides: ov }, null, 2);
     download('baybos-custom-rules.json', blob, 'application/json');
     _unsavedCount = 0;
   }
-
   function importRulesFile(file) {
     const reader = new FileReader();
     reader.onload = (e) => {
@@ -826,12 +628,11 @@
           saveOverrides({ ...loadOverrides(), ...data.overrides });
           if (state.txns.length) render();
           toast(`Imported ${Object.keys(data.overrides).length} custom rules.`);
-        } else toast('No "overrides" key in file.', 'warn');
+        } else toast('No "overrides" key.', 'warn');
       } catch (err) { toast('Could not parse JSON: ' + err.message, 'warn'); }
     };
     reader.readAsText(file);
   }
-
   function clearRules() {
     if (confirm('Remove all your custom category overrides? (Built-in & shared rules stay.)')) {
       saveOverrides({});
@@ -839,7 +640,6 @@
       if (state.txns.length) render();
     }
   }
-
   function download(name, content, mime) {
     const blob = new Blob([content], { type: mime + ';charset=utf-8;' });
     const url = URL.createObjectURL(blob);
@@ -847,7 +647,6 @@
     a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
     URL.revokeObjectURL(url);
   }
-
   function toast(msg, kind = 'info') {
     const el = document.getElementById('toast');
     el.textContent = msg;
@@ -883,13 +682,8 @@
   document.getElementById('clearRules').addEventListener('click', clearRules);
   document.getElementById('searchBox').addEventListener('input', e => { state.search = e.target.value; renderTxnTable(); });
   document.getElementById('downloadStructured').addEventListener('click', () => {
-    if (!state.structured) return;
-    const dump = state.structured.pages.map(p => {
-      return `\n===== Page ${p.pageNum} =====\n` +
-        p.rows.map(r => 'y=' + Math.round(r.y) + ' | ' +
-          r.items.map(it => `x=${Math.round(it.x)}:[${it.str}]`).join(' ')).join('\n');
-    }).join('\n');
-    download('baybos-structured-pages.txt', dump, 'text/plain');
+    const dump = state.txns.map(t => `p${t.page} x=${t.xRow} | ${t.transDate} | dr=${t.debit} cr=${t.credit} bal=${t.balance} | ${t.remarks.slice(0,80)}`).join('\n');
+    download('baybos-structured.txt', dump, 'text/plain');
   });
 
   async function handleFile(file) {
@@ -897,41 +691,42 @@
     progressEl.classList.remove('hidden');
     progressBar.style.width = '5%';
     try {
-      const structured = await extractPdfStructured(file, (p, total) => {
+      const extracted = await extractAllItems(file, (p, total) => {
         progressBar.style.width = `${10 + 70 * p / total}%`;
         statusEl.textContent = `Reading page ${p} of ${total}…`;
       });
       progressBar.style.width = '85%';
 
-      const adapter = detectAdapter(structured.text);
-      if (!adapter) throw new Error('Could not detect bank. Currently: GTCO. Others: scaffolded.');
+      // Bank check
+      if (!/Guaranty\s+Trust\s+Bank|GTBank|GTCO/i.test(extracted.text)) {
+        throw new Error('Bank not recognized. v6 supports GTCO; other banks scaffolded for future.');
+      }
 
-      const meta = adapter.extractMeta(structured.text);
-      const columns = adapter.locateColumns(structured.pages);
-      if (!columns) throw new Error('Could not locate Debits/Credits/Balance column headers in the PDF. Try a fresh export of the statement.');
+      // Locate column Y positions from page-1 headers
+      const columnYs = locateColumnYs(extracted.items);
+      if (!columnYs) throw new Error('Could not locate Debits/Credits/Balance column headers in this PDF.');
 
-      statusEl.textContent = `Detected ${adapter.name}. Columns located. Parsing transactions…`;
-      const txns = adapter.parseTxnsStructured(structured, meta, columns);
+      // Extract metadata
+      const meta = extractMeta(extracted.text);
 
-      state.adapter = adapter;
-      state.meta = meta;
-      state.columns = columns;
-      state.structured = structured;
+      // Parse transactions
+      const txns = parseTransactions(extracted.items, columnYs);
+
       state.txns = txns;
-      state.rawText = structured.text;
+      state.meta = meta;
+      state.columnYs = columnYs;
+      state.totalPages = extracted.totalPages;
+      state.totalItems = extracted.items.length;
 
-      document.getElementById('rawText').textContent = structured.text.slice(0, 60000);
       document.getElementById('debugSummary').innerHTML = `
-        Bank: <strong>${adapter.name}</strong> · Pages: ${structured.totalPages} · Items: ${structured.totalItems} ·
-        Column positions found: <strong>Debits x=${Math.round(columns.debitX)}, Credits x=${Math.round(columns.creditX)}, Balance x=${Math.round(columns.balanceX)}</strong> ·
+        Pages: ${extracted.totalPages} · Items: ${extracted.items.length} ·
+        Column Ys: D=${columnYs.debit}, C=${columnYs.credit}, B=${columnYs.balance}, R=${columnYs.remarks} ·
         Transactions: <strong>${txns.length}</strong> ·
-        Opening: ${meta.openingBalance !== null ? fmtShort(meta.openingBalance) : '?'} ·
-        Closing: ${meta.closingBalance !== null ? fmtShort(meta.closingBalance) : '?'} ·
         Header: Total Debit ${meta.totalDebit !== null ? fmtShort(meta.totalDebit) : '?'} / Total Credit ${meta.totalCredit !== null ? fmtShort(meta.totalCredit) : '?'}
       `;
 
       progressBar.style.width = '100%';
-      statusEl.textContent = `✓ ${txns.length} transactions from ${structured.totalPages} pages.`;
+      statusEl.textContent = `✓ ${txns.length} transactions from ${extracted.totalPages} pages.`;
       render();
       setTimeout(() => progressEl.classList.add('hidden'), 500);
     } catch (err) {
