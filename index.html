@@ -80,7 +80,7 @@
 </head>
 <body>
   <header>
-    <h1>📊 Baybos Statement Reader <span style="font-size:11px;opacity:.75;margin-left:8px">v4</span></h1>
+    <h1>📊 Baybos Statement Reader <span style="font-size:11px;opacity:.75;margin-left:8px">v5 · column-position parser</span></h1>
     <p>Drop a bank statement (PDF). Auto-categorized for Baybos. Everything stays in your browser.</p>
   </header>
 
@@ -88,7 +88,7 @@
     <div id="drop" class="drop-zone">
       <div class="icon">📥</div>
       <p><strong>Drop a statement here</strong> or click to choose</p>
-      <p style="font-size: 11px;">Supports GTCO. Zenith / Access / FBN coming. All pages processed.</p>
+      <p style="font-size: 11px;">Supports GTCO. Zenith / Access / FBN coming. All pages processed. Debit vs credit determined by column position, not guesswork.</p>
       <input type="file" id="fileInput" accept="application/pdf,.pdf" hidden>
     </div>
     <div id="status"></div>
@@ -100,6 +100,7 @@
         <span class="pill" id="periodBadge"></span>
         <span class="pill" id="accountBadge"></span>
         <span class="pill" id="masterRulesBadge" style="background:#dbeafe;color:#1e40af"></span>
+        <span class="pill" id="columnBadge" style="background:#fce7f3;color:#9d174d"></span>
       </div>
 
       <div class="grid" id="summary"></div>
@@ -160,11 +161,10 @@
       </div>
 
       <details>
-        <summary>🔧 Debug · view extracted text + parser diagnostics</summary>
+        <summary>🔧 Debug · column positions + parsing diagnostics</summary>
         <div class="panel" style="margin-top: 10px;">
           <div id="debugSummary" style="font-size: 12px; margin-bottom: 8px;"></div>
-          <button id="downloadRaw">Download raw extracted text</button>
-          <button id="downloadCleaned">Download cleaned text</button>
+          <button id="downloadStructured">Download structured page-row dump</button>
           <pre class="raw" id="rawText"></pre>
         </div>
       </details>
@@ -173,15 +173,15 @@
     <div id="emptyState" class="help">
       <strong>How this tool works:</strong>
       <ol>
-        <li>Drop a bank statement PDF above. All pages are read in your browser. Nothing is uploaded.</li>
-        <li>The tool detects the bank, parses every transaction, decides debit vs credit, and auto-categorizes using rules tuned for Baybos's "GAPSLITE" expense narration.</li>
-        <li>For each row, you can change the category in the dropdown. The tool remembers your choice and applies it next time the same description appears.</li>
-        <li>For bulk corrections: download the categorized CSV, fill in the Category column in Excel for any Uncategorized or wrong rows, then click <strong>Import master CSV</strong> to upload your edited file.</li>
-        <li>Export your rules JSON to share with anyone else using the tool — they get all your training instantly.</li>
+        <li>Drop a bank statement PDF. All pages are read in your browser. Nothing is uploaded.</li>
+        <li>The tool detects the bank, locates the Debits/Credits/Balance column positions in the table header, and reads each transaction by column. Debit vs credit is determined by which column the amount sits in — not guesswork.</li>
+        <li>Every transaction is auto-categorized using rules tuned for Baybos's "GAPSLITE" expense narration.</li>
+        <li>For each row you can change the category in the dropdown. The tool remembers your choice and applies it next time the same description appears.</li>
+        <li>For bulk corrections: download the categorized CSV, fill in the Category column in Excel for any Uncategorized or wrong rows, then click <strong>Import master CSV</strong>.</li>
       </ol>
     </div>
 
-    <p class="footer-note">Baybos Home School · open source · works offline · v4 · supports GTCO today, Zenith/Access/FBN scaffolded for next</p>
+    <p class="footer-note">Baybos Home School · open source · works offline · v5 · column-position parser · supports GTCO today, Zenith/Access/FBN scaffolded for next</p>
   </div>
 
   <div id="toast" class="toast"></div>
@@ -191,7 +191,7 @@
   pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
   // ============================================================================
-  // CATEGORIES
+  // CATEGORIES & BUILTIN RULES
   // ============================================================================
   const CATEGORIES = [
     'School Fees (Parents)', 'Other Income', 'Refunds',
@@ -204,17 +204,11 @@
     'Other Transfer', 'Other Expense', 'Uncategorized',
   ];
 
-  // ============================================================================
-  // BUILT-IN RULES — baseline regex categorization
-  // ============================================================================
   const BUILTIN_RULES = [
-    // Bank charges
     [/stamp dut/i, 'Bank Charges'],
     [/commission on nip/i, 'Bank Charges'],
     [/vatcharges?|vat\s?charges/i, 'Bank Charges'],
     [/maintenance fee|sms notification|account maintenance|sms alert/i, 'Bank Charges'],
-
-    // GAPSLITE (school expense prefix)
     [/gapslite (saturday )?allowance/i, 'Payroll & Allowances'],
     [/gapslite imprest/i, 'Payroll & Allowances'],
     [/gapslite proprietress/i, 'Payroll & Allowances'],
@@ -232,13 +226,9 @@
     [/gapslite university sponsor/i, 'Sponsorship & Donations'],
     [/gapslite jumia/i, 'Online Shopping'],
     [/gapslite/i, 'Other Expense'],
-
-    // Income
     [/mobile trf to gtb.*baybos home school/i, 'School Fees (Parents)'],
     [/trf frm.*baybos home school/i, 'School Fees (Parents)'],
     [/\bschool fees\b|tuition|fees etc/i, 'School Fees (Parents)'],
-
-    // Generic transfer types
     [/nibss instant payment outward/i, 'Vendor / Supplier Payment'],
     [/transfer between customers via gapslite/i, 'Vendor / Supplier Payment'],
     [/transfer between customers/i, 'Other Transfer'],
@@ -247,7 +237,7 @@
   ];
 
   // ============================================================================
-  // MASTER RULES — fetched from master-rules.json (shared layer)
+  // MASTER RULES & USER OVERRIDES
   // ============================================================================
   let masterRules = { exact: {}, regex: [] };
 
@@ -259,18 +249,13 @@
       masterRules.exact = data.rules || {};
       masterRules.regex = (data.regex_rules || []).map(([pat, cat]) => [new RegExp(pat, 'i'), cat]);
       const count = Object.keys(masterRules.exact).length + masterRules.regex.length;
-      if (count > 0) {
-        document.getElementById('masterRulesBadge').textContent = `Shared rules: ${count}`;
-      }
+      if (count > 0) document.getElementById('masterRulesBadge').textContent = `Shared rules: ${count}`;
     } catch (e) {
       console.warn('master-rules.json not loaded:', e.message);
     }
   }
   loadMasterRules();
 
-  // ============================================================================
-  // USER OVERRIDES
-  // ============================================================================
   const OVERRIDE_KEY = 'baybos_statement_overrides_v1';
   let _unsavedCount = 0;
 
@@ -293,15 +278,11 @@
   function categorize(remarks) {
     if (!remarks) return 'Uncategorized';
     const key = descKey(remarks);
-
-    // Layer 1: per-browser localStorage
     const overrides = loadOverrides();
     if (overrides[key]) return overrides[key];
     for (const ok of Object.keys(overrides)) {
       if (ok.length >= 15 && key.includes(ok)) return overrides[ok];
     }
-
-    // Layer 2: master-rules.json (shared team rules)
     if (masterRules.exact[key]) return masterRules.exact[key];
     for (const ok of Object.keys(masterRules.exact)) {
       if (ok.length >= 15 && key.includes(ok)) return masterRules.exact[ok];
@@ -309,8 +290,6 @@
     for (const [pat, cat] of masterRules.regex) {
       if (pat.test(remarks)) return cat;
     }
-
-    // Layer 3: built-in regex rules
     for (const [pat, cat] of BUILTIN_RULES) {
       if (pat.test(remarks)) return cat;
     }
@@ -318,21 +297,82 @@
   }
 
   // ============================================================================
-  // PARSER UTILS
+  // PDF EXTRACTION — returns structured pages with item positions preserved
   // ============================================================================
+  /**
+   * Extract per-page structured rows from the PDF.
+   * Each row is an array of items: { x, str, width, y }, sorted left-to-right.
+   * Rows are sorted top-to-bottom within each page.
+   */
+  async function extractPdfStructured(file, onProgress) {
+    const arrayBuffer = await file.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    const totalPages = pdf.numPages;
+    const pages = [];
+    let totalItems = 0;
+    let fullText = '';  // also build text for metadata extraction + bank detection
+
+    for (let p = 1; p <= totalPages; p++) {
+      onProgress && onProgress(p, totalPages);
+      const page = await pdf.getPage(p);
+      const tc = await page.getTextContent();
+      const items = tc.items;
+      totalItems += items.length;
+
+      const yMap = new Map();
+      for (const item of items) {
+        if (!item.str.trim()) continue;
+        const y = Math.round(item.transform[5] / 2) * 2;
+        if (!yMap.has(y)) yMap.set(y, []);
+        yMap.get(y).push({
+          x: item.transform[4],
+          y: item.transform[5],
+          str: item.str,
+          width: item.width || (item.str.length * 5),
+        });
+      }
+
+      const rows = [...yMap.entries()]
+        .sort((a, b) => b[0] - a[0])  // descending y = top-first
+        .map(([y, rowItems]) => ({
+          y,
+          items: rowItems.sort((a, b) => a.x - b.x),
+        }));
+
+      // Also build a per-page text representation for metadata + bank detection
+      for (const row of rows) {
+        let line = '';
+        let prevEnd = -Infinity;
+        for (const item of row.items) {
+          if (line) {
+            const gap = item.x - prevEnd;
+            if (gap > 8) line += ' '.repeat(Math.min(8, Math.max(2, Math.round(gap / 6))));
+            else line += ' ';
+          }
+          line += item.str;
+          prevEnd = item.x + item.width;
+        }
+        fullText += line + '\n';
+      }
+      fullText += '\n';
+
+      pages.push({ pageNum: p, rows });
+    }
+    return { pages, text: fullText, totalPages, totalItems };
+  }
+
+  // ============================================================================
+  // GTCO BANK ADAPTER — column-position parser
+  // ============================================================================
+  const MONTHS_RX = /^\d{1,2}-(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)-\d{4}$/;
+  const NUM_ITEM_RX = /^\d{1,3}(?:,\d{3})+(?:\.\d+)?$|^\d+\.\d{2}$/;
+
   function parseAmt(s) {
     if (!s) return 0;
     const n = parseFloat(String(s).replace(/[,\s]/g, ''));
     return isNaN(n) ? 0 : n;
   }
-  const MONTHS = '(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)';
-  const TXN_DATE_PAIR_RX = new RegExp(`(\\d{1,2}-${MONTHS}-\\d{4})\\s+(\\d{1,2}-${MONTHS}-\\d{4})`, 'g');
-  const ANY_DATE_RX = new RegExp(`\\d{1,2}-${MONTHS}-\\d{4}`, 'g');
-  const NUM_RX = /\b\d{1,3}(?:,\d{3})+(?:\.\d+)?\b|\b\d+\.\d{2}\b/g;
 
-  // ============================================================================
-  // GTCO BANK ADAPTER
-  // ============================================================================
   const GtcoAdapter = {
     name: 'Guaranty Trust Bank (GTCO)',
     code: 'gtco',
@@ -356,221 +396,193 @@
       };
     },
 
-    cleanNoise(text) {
-      // Step 1: Line-based filter — drop any line that's clearly noise.
-      // pdf.js can produce footer text on different lines than expected,
-      // so we filter by line content match rather than greedy regex.
-      const noisyLineRegexes = [
-        /This is a computer generated Email/i,
-        /Customer Information Unit of your local branch/i,
-        /Guaranty Trust Bank Plc Systems and Control Group/i,
-        /Fax 01-2694276/i,
-        /Awolowo Road, Ikoyi.*Victoria Island.*Lagos/i,
-        /^\s*Statement Period/i,
-        /^\s*Print\.?\s*Date\s/i,
-        /^\s*Branch Name\s/i,
-        /^\s*Account No\s+\d/i,
-        /^\s*Internal Reference\s/i,
-        /^\s*Address\s+NO/i,
-        /^\s*ABUJA\s+FCT\s*$/i,
-        /^\s*Account Type\s/i,
-        /^\s*Currency\s+NIGERIAN/i,
-        /^\s*Total Debit\s+[\d,]/i,
-        /^\s*Total Credit\s+[\d,]/i,
-        /^\s*Opening Balance\s+[\d,]/i,
-        /^\s*Closing Balance\s+[\d,]/i,
-        /^\s*Usable Balance\s+[\d,]/i,
-        /^\s*CUSTOMER STATEMENT\s*$/i,
-        /^\s*BAYBOS HOME SCHOOL\s*$/i,
-        /^\s*Trans\.?\s*Date\s+Value/i,
-        /^\s*Debits\s+Credits\s+Balance/i,
-        /^\s*Reference\s+Debits/i,
-      ];
-      let t = text.split('\n')
-        .filter(line => !noisyLineRegexes.some(p => p.test(line)))
-        .join('\n');
-
-      // Step 2: Inline strips for noise that survived (multi-item lines pdf.js merged).
-      // Strip from "This is a computer generated Email" up to ~400 chars or next date-pair.
-      t = t.replace(
-        /This\s+is\s+a\s+computer\s+generated\s+Email[\s\S]{1,600}?(?=\d{1,2}-(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)-\d{4}|$)/gi,
-        ' '
-      );
-      // Same for the "Fax 01-2694276" continuation if it appears alone.
-      t = t.replace(
-        /Fax\s+01-2694276[\s\S]{1,400}?(?=\d{1,2}-(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)-\d{4}|$)/gi,
-        ' '
-      );
-      // Strip the "635 AKIN ADESOLA" branch identifier — appears in every row.
-      t = t.replace(/\d{3}\s+AKIN\s+ADESOLA/gi, ' ');
-      // Strip trailing reference fragments like "2TPT7VP6539983*********4433" and similar masked references
-      t = t.replace(/[A-Z0-9]{5,}\*+\d+/g, ' ');
-
-      return t;
-    },
-
     /**
-     * Parse transactions from cleaned text.
-     * Returns: array of { transDate, valueDate, remarks, debit, credit, balance }
+     * Locate column positions by finding the table header row.
+     * The header has labels: "Trans. Date", "Value. Date", "Reference", "Debits", "Credits", "Balance", "Originating Branch", "Remarks"
+     * Returns: { debitX, creditX, balanceX, remarksX } or null if not found.
      */
-    parseTxns(cleanedText, meta) {
-      // Find all transaction starts
-      const matches = [];
-      let m;
-      TXN_DATE_PAIR_RX.lastIndex = 0;
-      while ((m = TXN_DATE_PAIR_RX.exec(cleanedText)) !== null) {
-        matches.push({ idx: m.index, len: m[0].length, transDate: m[1], valueDate: m[2] });
-      }
-      if (matches.length === 0) return [];
-
-      // Extract raw transactions
-      const txns = [];
-      for (let i = 0; i < matches.length; i++) {
-        const start = matches[i];
-        const end = i + 1 < matches.length ? matches[i + 1].idx : cleanedText.length;
-        const chunk = cleanedText.substring(start.idx + start.len, end);
-
-        const noTextDates = chunk.replace(ANY_DATE_RX, ' ');
-        const nums = [];
-        let nm;
-        NUM_RX.lastIndex = 0;
-        while ((nm = NUM_RX.exec(noTextDates)) !== null) {
-          const n = parseAmt(nm[0]);
-          if (n > 0) nums.push(n);
-        }
-
-        // Each GTCO transaction row has exactly 2 numbers (one of [debit, credit] + balance).
-        // The LAST number is the balance, the OTHER is the amount.
-        let amount = 0, balance = 0;
-        if (nums.length >= 2) {
-          balance = nums[nums.length - 1];
-          amount = nums[nums.length - 2];
-        } else if (nums.length === 1) {
-          balance = nums[0];
-        }
-
-        // Clean remarks: strip dates, numbers, leading apostrophes/pipes
-        const remarks = chunk
-          .replace(ANY_DATE_RX, ' ')
-          .replace(NUM_RX, ' ')
-          .replace(/[\r\n]+/g, ' ')
-          .replace(/\s+/g, ' ')
-          .replace(/^[\s'`|]+|[\s'`|]+$/g, '')
-          .trim();
-
-        txns.push({
-          transDate: start.transDate, valueDate: start.valueDate,
-          remarks, balance, debit: 0, credit: 0, _amount: amount,
-        });
-      }
-
-      // Filter out obviously bogus transactions (no amount AND no remarks)
-      const filtered = txns.filter(t => t._amount > 0 || (t.remarks && t.remarks.length > 5));
-
-      // Determine debit vs credit using HYBRID approach
-      this._resolveDebitCredit(filtered, meta);
-
-      return filtered;
-    },
-
-    /**
-     * Hybrid debit/credit determination.
-     * - Primary: balance arithmetic (prev_balance ± amount ≈ current_balance)
-     * - Secondary: keyword hints
-     * - Tertiary: default to debit (school is mostly spending)
-     */
-    _resolveDebitCredit(txns, meta) {
-      const isLikelyCreditByKeyword = (rem) => {
-        // Income markers — money coming IN
-        return /\btrf\s+frm\b|\bmobile\s+trf\s+to\s+gtb[^|]*?baybos\s+home\s+school\b|\brefund\s+from\b|\breversal\b|\bschool\s+fees\b|\btuition\b|\bfees\s+etc\b/i.test(rem);
-      };
-      const isLikelyDebitByKeyword = (rem) => {
-        // Expense markers — money going OUT
-        return /\btrf\s+to\b|\bgapslite\b|\bstamp\s+dut/i.test(rem)
-            || /\bvatcharges?\b|\bvat\s+charges?\b|\bcommission\s+on\s+nip\b|\bnibss\s+instant\s+payment\s+outward\b/i.test(rem)
-            || /\bpos\b|\bweb\s+transfer/i.test(rem)
-            || /\bmaintenance\s+fee\b|\bsms\s+notification\b/i.test(rem);
-      };
-
-      let priorBalance = meta && meta.openingBalance !== null ? meta.openingBalance : null;
-
-      for (let i = 0; i < txns.length; i++) {
-        const t = txns[i];
-        if (t._amount === 0) {
-          priorBalance = t.balance || priorBalance;
-          continue;
-        }
-
-        const keyCredit = isLikelyCreditByKeyword(t.remarks);
-        const keyDebit = isLikelyDebitByKeyword(t.remarks);
-
-        // Try arithmetic determination if we have prior + current balance
-        let arithSays = null;
-        if (priorBalance !== null && t.balance > 0) {
-          const ifDebit = priorBalance - t._amount;
-          const ifCredit = priorBalance + t._amount;
-          const debitDiff = Math.abs(ifDebit - t.balance);
-          const creditDiff = Math.abs(ifCredit - t.balance);
-          if (Math.abs(debitDiff - creditDiff) > 0.005) {
-            arithSays = debitDiff < creditDiff ? 'debit' : 'credit';
+    locateColumns(pages) {
+      for (const page of pages) {
+        for (const row of page.rows) {
+          // Build a position map for this row's labels
+          const labels = {};
+          for (const item of row.items) {
+            const t = item.str.trim().replace(/\.$/, '').toLowerCase();
+            if (t === 'debits') labels.debit = item.x;
+            else if (t === 'credits') labels.credit = item.x;
+            else if (t === 'balance') labels.balance = item.x;
+            else if (t === 'remarks') labels.remarks = item.x;
+            else if (t === 'originating branch') labels.branch = item.x;
+          }
+          if (labels.debit && labels.credit && labels.balance) {
+            return {
+              debitX: labels.debit,
+              creditX: labels.credit,
+              balanceX: labels.balance,
+              remarksX: labels.remarks || (labels.branch ? labels.branch + 100 : null),
+              branchX: labels.branch,
+            };
           }
         }
-
-        // Combine signals: keyword > arithmetic > default
-        let side;
-        if (keyCredit && !keyDebit) side = 'credit';
-        else if (keyDebit && !keyCredit) side = 'debit';
-        else if (arithSays) side = arithSays;
-        else side = 'debit'; // safe default — school is mostly spending
-
-        if (side === 'debit') t.debit = t._amount;
-        else t.credit = t._amount;
-
-        priorBalance = t.balance || priorBalance;
-        delete t._amount;
       }
+      return null;
+    },
 
-      // SECOND PASS — validate: if total debits/credits diverge wildly from header totals,
-      // try a single global flip on rows that were assigned by default
-      if (meta && meta.totalDebit !== null && meta.totalCredit !== null) {
-        const sumDebit = txns.reduce((s, t) => s + t.debit, 0);
-        const sumCredit = txns.reduce((s, t) => s + t.credit, 0);
-        const debitOff = Math.abs(sumDebit - meta.totalDebit);
-        const creditOff = Math.abs(sumCredit - meta.totalCredit);
-        // If we're way off, log it but don't auto-correct (could mask deeper bug)
-        if (debitOff > meta.totalDebit * 0.1 || creditOff > meta.totalCredit * 0.1) {
-          console.warn('Sum mismatch vs header:', {
-            parsedDebit: sumDebit, headerDebit: meta.totalDebit,
-            parsedCredit: sumCredit, headerCredit: meta.totalCredit,
-          });
+    /**
+     * Detect "noise" rows — table headers (repeated on each page), page footers,
+     * statement metadata block on page 1, etc. These should be skipped entirely.
+     */
+    isNoiseRow(row) {
+      const text = row.items.map(i => i.str).join(' ');
+      const tl = text.toLowerCase();
+      if (/this is a computer generated email/i.test(text)) return true;
+      if (/customer information unit/i.test(tl)) return true;
+      if (/guaranty trust bank plc systems/i.test(tl)) return true;
+      if (/^fax 01-2694276/i.test(text.trim())) return true;
+      if (/^\s*trans.?\s*date.*value.?\s*date/i.test(text)) return true;
+      if (/^\s*reference\s+debits\s+credits/i.test(text)) return true;
+      if (/customer statement/i.test(tl)) return true;
+      if (/^baybos home school\s*$/i.test(text.trim())) return true;
+      if (/^\s*(statement period|print\.?\s*date|branch name|account no|internal reference|address|account type|currency|total (debit|credit)|opening balance|closing balance|usable balance)\s/i.test(text)) return true;
+      if (/^\s*abuja\s+fct\s*$/i.test(text.trim())) return true;
+      if (/^\s*no \d+\s+aswan/i.test(text.trim())) return true;
+      return false;
+    },
+
+    /**
+     * Parse transactions using column-position-based detection.
+     * @param {Object} structured - { pages, text, ... } from extractPdfStructured
+     * @param {Object} meta - metadata extracted earlier
+     * @param {Object} columns - column positions from locateColumns
+     */
+    parseTxnsStructured(structured, meta, columns) {
+      const { pages } = structured;
+      const { debitX, creditX, balanceX, remarksX, branchX } = columns;
+      const COL_TOL = 80;  // tolerance for matching a number to a column
+
+      const txns = [];
+      let current = null;
+
+      const flush = () => {
+        if (current) {
+          current.remarks = current.remarks.replace(/\s+/g, ' ').trim();
+          // Strip standalone "635 AKIN ADESOLA" if it appears in remarks
+          current.remarks = current.remarks.replace(/\d{3}\s+AKIN\s+ADESOLA/gi, '').replace(/\s+/g, ' ').trim();
+          // Strip leading apostrophes / reference fragments
+          current.remarks = current.remarks.replace(/^['`|\s]+/, '').trim();
+          txns.push(current);
+          current = null;
+        }
+      };
+
+      for (const page of pages) {
+        for (const row of page.rows) {
+          if (this.isNoiseRow(row)) continue;
+
+          // Check if this row starts a new transaction (has a date pair at the start)
+          const isStart = row.items.length >= 2 &&
+                          MONTHS_RX.test(row.items[0].str) &&
+                          MONTHS_RX.test(row.items[1].str);
+
+          if (isStart) {
+            // Save previous transaction
+            flush();
+
+            // Start a new one
+            current = {
+              transDate: row.items[0].str,
+              valueDate: row.items[1].str,
+              debit: 0,
+              credit: 0,
+              balance: 0,
+              remarks: '',
+            };
+
+            // Classify each numeric item by column position
+            const remarksTokens = [];
+            for (let i = 2; i < row.items.length; i++) {
+              const item = row.items[i];
+              const s = item.str.trim();
+              if (!s) continue;
+
+              if (NUM_ITEM_RX.test(s)) {
+                const n = parseAmt(s);
+                // Determine which column by x position
+                const distDebit = Math.abs(item.x - debitX);
+                const distCredit = Math.abs(item.x - creditX);
+                const distBalance = Math.abs(item.x - balanceX);
+                const minDist = Math.min(distDebit, distCredit, distBalance);
+
+                if (minDist > COL_TOL) {
+                  // Doesn't match any column cleanly — likely a phone number or reference. Skip.
+                  continue;
+                }
+                if (minDist === distDebit) current.debit = n;
+                else if (minDist === distCredit) current.credit = n;
+                else if (minDist === distBalance) current.balance = n;
+              } else if (remarksX !== null && item.x >= remarksX - 30) {
+                // Text item in the remarks column zone
+                remarksTokens.push(s);
+              } else if (remarksX === null && branchX !== null && item.x >= branchX + 50) {
+                // Heuristic when no remarks column header — anything well past branch column
+                remarksTokens.push(s);
+              } else if (remarksX === null && branchX === null) {
+                // No column anchors — fall back to "non-numeric, after 2 numbers" heuristic
+                remarksTokens.push(s);
+              }
+              // else: reference column, branch column — skip for remarks
+            }
+            current.remarks = remarksTokens.join(' ');
+          } else if (current) {
+            // Continuation row — append all text-ish items to current transaction's remarks.
+            // Skip numeric items (shouldn't appear in continuation but defensive).
+            // Skip items in reference column (x < debit column).
+            const tokens = [];
+            for (const item of row.items) {
+              const s = item.str.trim();
+              if (!s) continue;
+              if (NUM_ITEM_RX.test(s)) continue;
+              // Items before debit column are likely reference continuation — skip
+              if (item.x < debitX - 60) continue;
+              tokens.push(s);
+            }
+            if (tokens.length) current.remarks += ' ' + tokens.join(' ');
+          }
         }
       }
+      flush();
+
+      // Discard malformed transactions (no amount AND no balance)
+      return txns.filter(t => t.debit > 0 || t.credit > 0 || t.balance > 0);
     },
   };
 
   // ============================================================================
-  // BANK ADAPTER SKELETONS
+  // BANK SKELETONS (Zenith, Access, FBN)
   // ============================================================================
   const ZenithAdapter = {
     name: 'Zenith Bank', code: 'zenith',
     detect(t) { return /Zenith\s+Bank/i.test(t); },
     extractMeta() { return {}; },
-    cleanNoise(t) { return t; },
-    parseTxns() { throw new Error('Zenith parser not yet implemented. Send a sample to develop it.'); },
+    locateColumns() { return null; },
+    parseTxnsStructured() { throw new Error('Zenith parser not yet implemented. Send a sample to develop it.'); },
+    isNoiseRow() { return false; },
   };
   const AccessAdapter = {
     name: 'Access Bank', code: 'access',
     detect(t) { return /Access\s+Bank/i.test(t); },
     extractMeta() { return {}; },
-    cleanNoise(t) { return t; },
-    parseTxns() { throw new Error('Access parser not yet implemented.'); },
+    locateColumns() { return null; },
+    parseTxnsStructured() { throw new Error('Access parser not yet implemented.'); },
+    isNoiseRow() { return false; },
   };
   const FbnAdapter = {
     name: 'First Bank of Nigeria (FBN)', code: 'fbn',
     detect(t) { return /First\s+Bank\s+of\s+Nigeria|FirstBank/i.test(t); },
     extractMeta() { return {}; },
-    cleanNoise(t) { return t; },
-    parseTxns() { throw new Error('FBN parser not yet implemented.'); },
+    locateColumns() { return null; },
+    parseTxnsStructured() { throw new Error('FBN parser not yet implemented.'); },
+    isNoiseRow() { return false; },
   };
 
   const BANK_ADAPTERS = [GtcoAdapter, ZenithAdapter, AccessAdapter, FbnAdapter];
@@ -583,59 +595,11 @@
   }
 
   // ============================================================================
-  // PDF TEXT EXTRACTION
-  // ============================================================================
-  async function extractPdfText(file, onProgress) {
-    const arrayBuffer = await file.arrayBuffer();
-    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-    const totalPages = pdf.numPages;
-    let fullText = '';
-    let totalItems = 0;
-
-    for (let p = 1; p <= totalPages; p++) {
-      onProgress && onProgress(p, totalPages);
-      const page = await pdf.getPage(p);
-      const tc = await page.getTextContent();
-      const items = tc.items;
-      totalItems += items.length;
-
-      const lineMap = new Map();
-      for (const item of items) {
-        if (!item.str.trim()) continue;
-        const y = Math.round(item.transform[5] / 2) * 2;
-        if (!lineMap.has(y)) lineMap.set(y, []);
-        lineMap.get(y).push({
-          x: item.transform[4], str: item.str, width: item.width || (item.str.length * 5),
-        });
-      }
-
-      const sortedYs = [...lineMap.keys()].sort((a, b) => b - a);
-      for (const y of sortedYs) {
-        const row = lineMap.get(y).sort((a, b) => a.x - b.x);
-        let line = '';
-        let prevEnd = -Infinity;
-        for (const item of row) {
-          if (line) {
-            const gap = item.x - prevEnd;
-            if (gap > 8) line += ' '.repeat(Math.min(8, Math.max(2, Math.round(gap / 6))));
-            else line += ' ';
-          }
-          line += item.str;
-          prevEnd = item.x + item.width;
-        }
-        fullText += line + '\n';
-      }
-      fullText += '\n';
-    }
-    return { text: fullText, pages: totalPages, items: totalItems };
-  }
-
-  // ============================================================================
   // RENDER
   // ============================================================================
   let state = {
-    adapter: null, meta: null,
-    txns: [], rawText: '', cleanedText: '',
+    adapter: null, meta: null, columns: null,
+    txns: [], rawText: '', structured: null,
     filter: 'all', search: '',
   };
 
@@ -659,11 +623,14 @@
     document.getElementById('bankBadge').textContent = state.adapter ? state.adapter.name : 'Bank: unknown';
     document.getElementById('periodBadge').textContent = meta.period ? `Period: ${meta.period}` : '';
     document.getElementById('accountBadge').textContent = meta.accountNo ? `Account: ${meta.accountNo}` : '';
+    document.getElementById('columnBadge').textContent = state.columns
+      ? `Cols: D@${Math.round(state.columns.debitX)} C@${Math.round(state.columns.creditX)} B@${Math.round(state.columns.balanceX)}`
+      : '';
 
     const validation = (meta.totalDebit !== null && meta.totalCredit !== null)
       ? (Math.abs(totalDebit - meta.totalDebit) < 1 && Math.abs(totalCredit - meta.totalCredit) < 1
          ? '✓ matches header'
-         : `⚠ off: header says ${fmtShort(meta.totalDebit)} dr / ${fmtShort(meta.totalCredit)} cr`)
+         : `⚠ header says ${fmtShort(meta.totalDebit)} dr / ${fmtShort(meta.totalCredit)} cr`)
       : '';
 
     document.getElementById('summary').innerHTML = `
@@ -764,7 +731,7 @@
         saveOverrides(ov);
         _unsavedCount += 1;
         if (_unsavedCount % 10 === 0) {
-          toast(`${_unsavedCount} edits saved. Consider clicking "Export rules JSON" to back them up.`, 'warn');
+          toast(`${_unsavedCount} edits saved. Click "Export rules JSON" to back them up.`, 'warn');
         }
         render();
       });
@@ -777,7 +744,7 @@
   function toggleSection(id) { document.querySelector(`#${id} tbody`).classList.toggle('hidden'); }
 
   // ============================================================================
-  // CSV PARSE / EXPORT / IMPORT
+  // CSV / JSON IMPORT-EXPORT
   // ============================================================================
   function csvEscape(v) {
     if (v === null || v === undefined) return '""';
@@ -825,9 +792,7 @@
       const headers = parseCsvLine(lines[0]).map(c => c.replace(/^"|"$/g, '').trim().toLowerCase());
       const descIdx = headers.findIndex(h => h === 'description' || h === 'remarks');
       const catIdx = headers.findIndex(h => h === 'category');
-      if (descIdx < 0 || catIdx < 0) {
-        return toast(`CSV must have "Description" and "Category" columns. Got: ${headers.join(', ')}`, 'warn');
-      }
+      if (descIdx < 0 || catIdx < 0) return toast(`CSV must have "Description" and "Category" columns. Got: ${headers.join(', ')}`, 'warn');
       const overrides = loadOverrides();
       let added = 0, skipped = 0;
       for (let i = 1; i < lines.length; i++) {
@@ -847,10 +812,7 @@
 
   function exportRules() {
     const ov = loadOverrides();
-    const blob = JSON.stringify({
-      version: 1, exported_at: new Date().toISOString(),
-      categories: CATEGORIES, overrides: ov,
-    }, null, 2);
+    const blob = JSON.stringify({ version: 1, exported_at: new Date().toISOString(), categories: CATEGORIES, overrides: ov }, null, 2);
     download('baybos-custom-rules.json', blob, 'application/json');
     _unsavedCount = 0;
   }
@@ -920,42 +882,56 @@
   document.getElementById('rulesFileInput').addEventListener('change', e => { if (e.target.files[0]) importRulesFile(e.target.files[0]); });
   document.getElementById('clearRules').addEventListener('click', clearRules);
   document.getElementById('searchBox').addEventListener('input', e => { state.search = e.target.value; renderTxnTable(); });
-  document.getElementById('downloadRaw').addEventListener('click', () => download('baybos-rawtext.txt', state.rawText, 'text/plain'));
-  document.getElementById('downloadCleaned').addEventListener('click', () => download('baybos-cleanedtext.txt', state.cleanedText, 'text/plain'));
+  document.getElementById('downloadStructured').addEventListener('click', () => {
+    if (!state.structured) return;
+    const dump = state.structured.pages.map(p => {
+      return `\n===== Page ${p.pageNum} =====\n` +
+        p.rows.map(r => 'y=' + Math.round(r.y) + ' | ' +
+          r.items.map(it => `x=${Math.round(it.x)}:[${it.str}]`).join(' ')).join('\n');
+    }).join('\n');
+    download('baybos-structured-pages.txt', dump, 'text/plain');
+  });
 
   async function handleFile(file) {
     statusEl.textContent = `Reading ${file.name} (${(file.size / 1024).toFixed(1)} KB)…`;
     progressEl.classList.remove('hidden');
     progressBar.style.width = '5%';
     try {
-      const extracted = await extractPdfText(file, (p, total) => {
+      const structured = await extractPdfStructured(file, (p, total) => {
         progressBar.style.width = `${10 + 70 * p / total}%`;
         statusEl.textContent = `Reading page ${p} of ${total}…`;
       });
       progressBar.style.width = '85%';
 
-      const adapter = detectAdapter(extracted.text);
+      const adapter = detectAdapter(structured.text);
       if (!adapter) throw new Error('Could not detect bank. Currently: GTCO. Others: scaffolded.');
 
+      const meta = adapter.extractMeta(structured.text);
+      const columns = adapter.locateColumns(structured.pages);
+      if (!columns) throw new Error('Could not locate Debits/Credits/Balance column headers in the PDF. Try a fresh export of the statement.');
+
+      statusEl.textContent = `Detected ${adapter.name}. Columns located. Parsing transactions…`;
+      const txns = adapter.parseTxnsStructured(structured, meta, columns);
+
       state.adapter = adapter;
-      state.rawText = extracted.text;
-      state.meta = adapter.extractMeta(extracted.text);
-      state.cleanedText = adapter.cleanNoise(extracted.text);
+      state.meta = meta;
+      state.columns = columns;
+      state.structured = structured;
+      state.txns = txns;
+      state.rawText = structured.text;
 
-      statusEl.textContent = `Detected ${adapter.name}. Parsing transactions…`;
-      state.txns = adapter.parseTxns(state.cleanedText, state.meta);
-
-      document.getElementById('rawText').textContent = state.cleanedText.slice(0, 60000);
+      document.getElementById('rawText').textContent = structured.text.slice(0, 60000);
       document.getElementById('debugSummary').innerHTML = `
-        Bank: <strong>${adapter.name}</strong> · Pages: ${extracted.pages} · Items: ${extracted.items} ·
-        Raw lines: ${extracted.text.split('\n').length} → Cleaned: ${state.cleanedText.split('\n').length} ·
-        Transactions: <strong>${state.txns.length}</strong> ·
-        Opening: ${state.meta.openingBalance !== null ? fmtShort(state.meta.openingBalance) : '?'} ·
-        Closing: ${state.meta.closingBalance !== null ? fmtShort(state.meta.closingBalance) : '?'}
+        Bank: <strong>${adapter.name}</strong> · Pages: ${structured.totalPages} · Items: ${structured.totalItems} ·
+        Column positions found: <strong>Debits x=${Math.round(columns.debitX)}, Credits x=${Math.round(columns.creditX)}, Balance x=${Math.round(columns.balanceX)}</strong> ·
+        Transactions: <strong>${txns.length}</strong> ·
+        Opening: ${meta.openingBalance !== null ? fmtShort(meta.openingBalance) : '?'} ·
+        Closing: ${meta.closingBalance !== null ? fmtShort(meta.closingBalance) : '?'} ·
+        Header: Total Debit ${meta.totalDebit !== null ? fmtShort(meta.totalDebit) : '?'} / Total Credit ${meta.totalCredit !== null ? fmtShort(meta.totalCredit) : '?'}
       `;
 
       progressBar.style.width = '100%';
-      statusEl.textContent = `✓ ${state.txns.length} transactions from ${extracted.pages} pages.`;
+      statusEl.textContent = `✓ ${txns.length} transactions from ${structured.totalPages} pages.`;
       render();
       setTimeout(() => progressEl.classList.add('hidden'), 500);
     } catch (err) {
