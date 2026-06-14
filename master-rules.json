@@ -1,0 +1,7 @@
+{
+  "version": 1,
+  "updated_at": "2026-06-14",
+  "comments": "Shared rules curated from accountant-submitted overrides. Higher priority than BUILTIN_RULES in index.html, lower than per-browser localStorage. Merge new rules in here when contributors send their exported JSON.",
+  "rules": {},
+  "regex_rules": []
+}

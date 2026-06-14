@@ -1,8 +1,8 @@
 # Baybos Statement Reader
 
-A private, browser-only tool that categorizes bank statements for **Baybos Home School**.
+A private, browser-only tool that categorizes Nigerian bank statements for **Baybos Home School**.
 
-Drop a bank statement PDF → see every transaction sorted into school categories (Payroll, Books, Sports Day, Maintenance, Bank Charges, School Fees, etc.) → download clean CSVs for the accounts.
+Drop a bank statement PDF → see every transaction sorted into school categories (Payroll, Books, Sports Day, Maintenance, Bank Charges, parent fees, etc.) → download clean CSVs for the accounts.
 
 **Privacy:** the PDF is read inside the browser. Nothing uploads anywhere.
 
@@ -10,21 +10,34 @@ Drop a bank statement PDF → see every transaction sorted into school categorie
 
 ---
 
-## What it does
+## Documents in this repo
 
-1. **Reads bank statements.** Currently GTCO (Guaranty Trust Bank); Zenith, Access, FBN scaffolded.
-2. **Strips boilerplate.** Each PDF page has a repeating footer ("This is a computer generated Email…") and table header — the parser removes these before extracting transactions.
-3. **Auto-categorizes** using rules tuned for the school's "GAPSLITE" expense narration convention:
-   - `GAPSLITE T SHIRTS` → **Uniforms & Sports**
-   - `GAPSLITE CEMENT TO MONIEMFB` → **Maintenance & Construction**
-   - `GAPSLITE SATURDAY ALLOWANCE` → **Payroll & Allowances**
-   - `MOBILE TRF TO GTB … BAYBOS HOME SCHOOL` → **School Fees (Parents)**
-   - `Commission on NIP Transfer` → **Bank Charges**
-4. **Lets the accountant correct anything.** Two ways:
-   - **Quick:** change the dropdown on any row. The tool remembers and applies the same category to that description in future statements.
-   - **Bulk:** download the categorized CSV, fill in the **Category** column in Excel for any Uncategorized or wrong rows, then click **Import master CSV** and upload the edited file. Every category you set becomes a rule.
-5. **Exports** a row-by-row categorized CSV or a summary CSV (per category).
-6. **Shares rules.** Export your custom rules as JSON, send to someone else, they import — instant training transfer.
+| File | Purpose | Audience |
+|---|---|---|
+| `index.html` | The tool itself — single-file HTML/CSS/JS | Anyone (it's the live source) |
+| `master-rules.json` | Shared categorization rules curated from accountant feedback | The tool fetches it at startup |
+| `README.md` | Public-facing description | GitHub visitors |
+| `MASTER_RULES_WORKFLOW.md` | How the rule-improvement loop works | **Yomi (repo maintainer)** — read carefully |
+| `FABLE5_HANDOVER.md` | Integration spec for migrating the tool into baybos.school | **Fable5 (or whoever rebuilds the site)** — canonical spec |
+| `BROTHER_COMMS.md` | Draft email/WhatsApp template for inviting the accountant | Yomi |
+| `DEPLOY.md` | One-time GitHub Pages setup steps | Yomi |
+| `LICENSE` | MIT | Anyone |
+
+If you're going to lift this into another site (Fable5 / baybos.school), **read `FABLE5_HANDOVER.md` first and follow it meticulously.**
+
+---
+
+## What the tool does
+
+1. **Reads bank statements.** Currently GTCO (Guaranty Trust Bank). Zenith, Access, FBN scaffolded — adding them is one new adapter object.
+2. **Strips boilerplate.** Repeating page footers ("This is a computer generated Email…"), table headers, statement-level metadata — all removed before parsing.
+3. **Determines debit vs credit** using a hybrid of keyword markers, balance arithmetic, and a safe default.
+4. **Categorizes** every transaction using a 3-layer rule system: per-browser overrides (top priority) → shared `master-rules.json` (team rules) → built-in regex baseline.
+5. **Lets the accountant correct anything.**
+   - **Quick:** change the dropdown on any row. The tool remembers and applies that category to the same description in future statements.
+   - **Bulk:** download the categorized CSV, fill in the Category column in Excel for any Uncategorized or wrong rows, then click **Import master CSV**. Every category you set becomes a rule.
+6. **Exports** a row-by-row categorized CSV or a summary CSV (per category).
+7. **Shares rules.** Export custom rules as JSON. Send to anyone, they import — instant training transfer. Merged into `master-rules.json` by the maintainer, then everyone benefits.
 
 ---
 
@@ -32,11 +45,11 @@ Drop a bank statement PDF → see every transaction sorted into school categorie
 
 | Month | Auto-categorized | Manual work |
 |---|---|---|
-| 1 | ~50% | Brother fills in the rest, becomes rules |
+| 1 | ~50% | Accountant fills in the rest, becomes rules |
 | 2 | ~80% | Only new/unique transactions need attention |
 | 3+ | ~95% | Almost just edge cases |
 
-Each correction the accountant makes becomes a permanent rule in the browser's localStorage. Export the rules JSON periodically as a backup or to merge with the master tool.
+Each correction the accountant makes becomes a permanent rule in the browser's localStorage. Export the rules JSON periodically as a backup or to merge with the master tool. See `MASTER_RULES_WORKFLOW.md` for the full loop.
 
 ---
 
@@ -64,46 +77,11 @@ Each correction the accountant makes becomes a permanent rule in the browser's l
 
 ---
 
-## Architecture
+## Architecture (one-paragraph version)
 
-### Bank adapters (extensible)
+The parser is split into per-bank adapters (`BANK_ADAPTERS` array) with a uniform interface — `detect`, `extractMeta`, `cleanNoise`, `parseTxns`. The categorizer is bank-agnostic, consulting localStorage → `master-rules.json` → `BUILTIN_RULES` in priority order. PDF text extraction uses pdf.js with column-aware line reconstruction. The normalized transaction model `{transDate, valueDate, remarks, debit, credit, balance}` is what bank API integrations (Mono, Okra, Plaid) will eventually produce too — one more adapter at the input side, no other code changes.
 
-The parser is split into per-bank adapters. Each one knows how to:
-- Detect its own bank from PDF text (`detect`)
-- Extract statement metadata (`extractMeta`) — opening/closing balance, period, account
-- Strip noise specific to its layout (`cleanNoise`) — page footers, table headers
-- Parse transactions into a normalized model (`parseTxns`)
-
-The normalized transaction model is bank-agnostic:
-
-```js
-{ transDate, valueDate, remarks, debit, credit, balance }
-```
-
-Adding a new bank means adding one adapter object — categorization, UI, CSV export, override tracking all work unchanged.
-
-### Master CSV workflow
-
-The "Import master CSV" workflow lets the accountant teach the tool in bulk:
-
-1. Download the categorized CSV.
-2. Open in Excel. For any row marked **Uncategorized** (or wrongly categorized), set the **Category** column to the correct value.
-3. Save and upload via "Import master CSV". Every (Description, Category) pair becomes a rule.
-4. The next statement uses those rules automatically.
-
-Rules match on description text (lowercase, whitespace-normalized, long numeric references replaced by `#`). A shorter rule key is matched as a substring against longer descriptions — so a rule set on a small distinctive phrase applies broadly.
-
-### Future: bank APIs
-
-The same normalized transaction model works for bank API responses (Mono, Okra, Plaid). Adding API ingestion = one more adapter at the input side, no other code touched.
-
----
-
-## Deploy
-
-Already deployed at https://babaanalytix-commits.github.io/baybos-statement-reader/ via GitHub Pages from the `master` branch.
-
-To update: commit + push to `master`. Pages redeploys in ~30 seconds.
+For the deeper integration spec, see `FABLE5_HANDOVER.md`.
 
 ---
 

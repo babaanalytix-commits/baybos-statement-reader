@@ -17,40 +17,21 @@
       --indigo: #4338ca;
     }
     * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
-      background: var(--bg); color: var(--ink); line-height: 1.5;
-    }
-    header {
-      background: linear-gradient(135deg, #1e3a8a 0%, #4338ca 100%);
-      color: white; padding: 20px 28px;
-    }
+    body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif; background: var(--bg); color: var(--ink); line-height: 1.5; }
+    header { background: linear-gradient(135deg, #1e3a8a 0%, #4338ca 100%); color: white; padding: 20px 28px; }
     header h1 { margin: 0 0 2px; font-size: 20px; }
     header p { margin: 0; opacity: 0.85; font-size: 12px; }
     .container { max-width: 1320px; margin: 0 auto; padding: 20px 28px 60px; }
-    .drop-zone {
-      border: 2px dashed #cbd5e1; border-radius: 12px; padding: 28px 24px;
-      text-align: center; background: var(--card); cursor: pointer; transition: all 0.15s;
-    }
+    .drop-zone { border: 2px dashed #cbd5e1; border-radius: 12px; padding: 28px 24px; text-align: center; background: var(--card); cursor: pointer; transition: all 0.15s; }
     .drop-zone:hover, .drop-zone.drag-over { border-color: var(--indigo); background: #eef2ff; }
     .drop-zone p { margin: 4px 0; color: var(--muted); }
     .drop-zone .icon { font-size: 28px; }
-    .grid {
-      display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 10px; margin: 16px 0;
-    }
-    .stat {
-      background: var(--card); padding: 14px; border-radius: 10px;
-      border: 1px solid var(--line);
-    }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; margin: 16px 0; }
+    .stat { background: var(--card); padding: 14px; border-radius: 10px; border: 1px solid var(--line); }
     .stat .label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
     .stat .value { font-size: 20px; font-weight: 700; margin-top: 4px; }
     .stat .sub { font-size: 10px; color: var(--muted); }
-    .panel {
-      background: var(--card); border: 1px solid var(--line); border-radius: 10px;
-      padding: 18px; margin-bottom: 14px;
-    }
+    .panel { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 18px; margin-bottom: 14px; }
     .panel h2 { margin: 0 0 10px; font-size: 15px; }
     table { width: 100%; border-collapse: collapse; font-size: 12px; }
     th { text-align: left; padding: 9px 6px; border-bottom: 2px solid var(--line); font-weight: 600; color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.3px; }
@@ -58,24 +39,15 @@
     .num { text-align: right; font-variant-numeric: tabular-nums; }
     .num.debit { color: var(--accent); }
     .num.credit { color: var(--green); }
-    .pill {
-      display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px;
-      font-weight: 500; background: #f3f4f6; white-space: nowrap;
-    }
-    .pill.bank-detect {
-      background: #fef3c7; color: #92400e; border: 1px solid #fcd34d;
-      padding: 4px 10px; font-size: 12px;
-    }
+    .pill { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 500; background: #f3f4f6; white-space: nowrap; }
+    .pill.bank-detect { background: #fef3c7; color: #92400e; border: 1px solid #fcd34d; padding: 4px 10px; font-size: 12px; }
     .bar { height: 6px; background: var(--line); border-radius: 3px; overflow: hidden; flex: 1; min-width: 120px; }
     .bar-fill { height: 100%; }
     .bar-fill.debit { background: var(--accent); }
     .bar-fill.credit { background: var(--green); }
     .bar-row { display: flex; align-items: center; gap: 8px; }
     .controls { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; align-items: center; }
-    button {
-      padding: 7px 12px; border: 1px solid var(--line); background: white; border-radius: 6px;
-      cursor: pointer; font-size: 12px; font-weight: 500;
-    }
+    button { padding: 7px 12px; border: 1px solid var(--line); background: white; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 500; }
     button:hover { background: #f9fafb; }
     button.primary { background: var(--indigo); color: white; border-color: var(--indigo); }
     button.primary:hover { background: #3730a3; }
@@ -86,10 +58,7 @@
     .quick-filters { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
     .quick-filters button { padding: 3px 9px; font-size: 11px; }
     .quick-filters button.active { background: var(--ink); color: white; border-color: var(--ink); }
-    select.category-select {
-      padding: 3px 6px; font-size: 11px; border-radius: 4px; border: 1px solid var(--line);
-      background: white; cursor: pointer; max-width: 200px;
-    }
+    select.category-select { padding: 3px 6px; font-size: 11px; border-radius: 4px; border: 1px solid var(--line); background: white; cursor: pointer; max-width: 200px; }
     select.category-select.modified { border-color: var(--indigo); background: #eef2ff; }
     .search-box { padding: 6px 10px; border: 1px solid var(--line); border-radius: 6px; font-size: 12px; width: 240px; }
     .progress { width: 100%; height: 4px; background: var(--line); border-radius: 2px; overflow: hidden; margin-top: 8px; }
@@ -103,14 +72,15 @@
     .help li { margin: 4px 0; }
     .footer-note { font-size: 11px; color: var(--muted); margin-top: 20px; text-align: center; }
     .badge { font-size: 9px; padding: 1px 5px; border-radius: 8px; background: var(--indigo); color: white; margin-left: 4px; }
-    .badge.warn { background: #f59e0b; }
     .row-desc { max-width: 520px; font-size: 11.5px; color: var(--ink); }
-    .row-desc-meta { color: var(--muted); font-size: 10px; margin-top: 2px; }
+    .toast { position: fixed; bottom: 20px; right: 20px; background: var(--ink); color: white; padding: 12px 18px; border-radius: 8px; font-size: 13px; z-index: 100; opacity: 0; transition: opacity 0.2s; }
+    .toast.show { opacity: 1; }
+    .toast.warn { background: #b45309; }
   </style>
 </head>
 <body>
   <header>
-    <h1>📊 Baybos Statement Reader</h1>
+    <h1>📊 Baybos Statement Reader <span style="font-size:11px;opacity:.75;margin-left:8px">v4</span></h1>
     <p>Drop a bank statement (PDF). Auto-categorized for Baybos. Everything stays in your browser.</p>
   </header>
 
@@ -118,7 +88,7 @@
     <div id="drop" class="drop-zone">
       <div class="icon">📥</div>
       <p><strong>Drop a statement here</strong> or click to choose</p>
-      <p style="font-size: 11px;">Supports GTCO. Zenith, Access, FBN coming. All pages processed.</p>
+      <p style="font-size: 11px;">Supports GTCO. Zenith / Access / FBN coming. All pages processed.</p>
       <input type="file" id="fileInput" accept="application/pdf,.pdf" hidden>
     </div>
     <div id="status"></div>
@@ -129,6 +99,7 @@
         <span class="pill bank-detect" id="bankBadge">Bank: detecting…</span>
         <span class="pill" id="periodBadge"></span>
         <span class="pill" id="accountBadge"></span>
+        <span class="pill" id="masterRulesBadge" style="background:#dbeafe;color:#1e40af"></span>
       </div>
 
       <div class="grid" id="summary"></div>
@@ -158,9 +129,8 @@
       <div class="panel">
         <h2>📋 Transactions <span id="overrideCount" style="font-size: 11px; color: var(--muted);"></span></h2>
         <p style="font-size: 12px; color: var(--muted); margin-bottom: 12px;">
-          To re-categorize, change the dropdown. Or download the CSV, fill in the Category column for
-          Uncategorized rows, then re-upload as a Master File — every category you fill in becomes a rule
-          that's applied to future statements automatically.
+          To re-categorize, change the dropdown. Or download the CSV, fill in the Category column for Uncategorized rows,
+          then re-upload via <strong>Import master CSV</strong> — every category you fill in becomes a rule applied to future statements.
         </p>
         <div class="quick-filters" id="catFilters"></div>
         <div class="controls">
@@ -190,14 +160,11 @@
       </div>
 
       <details>
-        <summary>🔧 Debug · view extracted raw text + parsing diagnostics</summary>
+        <summary>🔧 Debug · view extracted text + parser diagnostics</summary>
         <div class="panel" style="margin-top: 10px;">
-          <p style="font-size: 12px; color: var(--muted);">
-            If categorization looks wrong, this is what the tool actually read from the PDF.
-          </p>
           <div id="debugSummary" style="font-size: 12px; margin-bottom: 8px;"></div>
           <button id="downloadRaw">Download raw extracted text</button>
-          <button id="downloadCleaned">Download cleaned text (post noise-strip)</button>
+          <button id="downloadCleaned">Download cleaned text</button>
           <pre class="raw" id="rawText"></pre>
         </div>
       </details>
@@ -207,58 +174,47 @@
       <strong>How this tool works:</strong>
       <ol>
         <li>Drop a bank statement PDF above. All pages are read in your browser. Nothing is uploaded.</li>
-        <li>The tool detects the bank, parses every transaction, and auto-categorizes using rules tuned for Baybos's "GAPSLITE" expense narration.</li>
-        <li>For each row, you can change the category in the dropdown. The tool remembers your choice and applies it the next time the same description appears.</li>
-        <li>For bulk corrections: download the categorized CSV, fill in the Category column in Excel for any Uncategorized or wrong rows, then click <strong>Import master CSV</strong> to upload your edited file. Every category you set becomes a rule.</li>
+        <li>The tool detects the bank, parses every transaction, decides debit vs credit, and auto-categorizes using rules tuned for Baybos's "GAPSLITE" expense narration.</li>
+        <li>For each row, you can change the category in the dropdown. The tool remembers your choice and applies it next time the same description appears.</li>
+        <li>For bulk corrections: download the categorized CSV, fill in the Category column in Excel for any Uncategorized or wrong rows, then click <strong>Import master CSV</strong> to upload your edited file.</li>
         <li>Export your rules JSON to share with anyone else using the tool — they get all your training instantly.</li>
       </ol>
     </div>
 
-    <p class="footer-note">Baybos Home School · open source · works offline · this is v3 · supports GTCO today, Zenith/Access/FBN scaffolded for next</p>
+    <p class="footer-note">Baybos Home School · open source · works offline · v4 · supports GTCO today, Zenith/Access/FBN scaffolded for next</p>
   </div>
+
+  <div id="toast" class="toast"></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script>
   pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
   // ============================================================================
-  // CATEGORIES — single source of truth for both dropdowns and exports
+  // CATEGORIES
   // ============================================================================
   const CATEGORIES = [
-    'School Fees (Parents)',
-    'Other Income',
-    'Refunds',
-    'Payroll & Allowances',
-    'Books & Educational Materials',
-    'Uniforms & Sports',
-    'Sports Day & Events',
-    'Food & Catering',
-    'Maintenance & Construction',
-    'Transport & Fuel',
-    'IT, Internet & Equipment',
-    'Health & First Aid',
-    'Legal & Admin',
-    'Sponsorship & Donations',
-    'Online Shopping',
-    'Bank Charges',
-    'Vendor / Supplier Payment',
-    'POS / Card Purchase',
-    'Other Transfer',
-    'Other Expense',
-    'Uncategorized',
+    'School Fees (Parents)', 'Other Income', 'Refunds',
+    'Payroll & Allowances', 'Books & Educational Materials',
+    'Uniforms & Sports', 'Sports Day & Events', 'Food & Catering',
+    'Maintenance & Construction', 'Transport & Fuel',
+    'IT, Internet & Equipment', 'Health & First Aid',
+    'Legal & Admin', 'Sponsorship & Donations', 'Online Shopping',
+    'Bank Charges', 'Vendor / Supplier Payment', 'POS / Card Purchase',
+    'Other Transfer', 'Other Expense', 'Uncategorized',
   ];
 
   // ============================================================================
-  // BUILT-IN CATEGORIZATION RULES — Baybos-tuned, applied to cleaned remarks
+  // BUILT-IN RULES — baseline regex categorization
   // ============================================================================
   const BUILTIN_RULES = [
-    // --- Bank charges ---
+    // Bank charges
     [/stamp dut/i, 'Bank Charges'],
     [/commission on nip/i, 'Bank Charges'],
     [/vatcharges?|vat\s?charges/i, 'Bank Charges'],
     [/maintenance fee|sms notification|account maintenance|sms alert/i, 'Bank Charges'],
 
-    // --- GAPSLITE (school expense prefix) ---
+    // GAPSLITE (school expense prefix)
     [/gapslite (saturday )?allowance/i, 'Payroll & Allowances'],
     [/gapslite imprest/i, 'Payroll & Allowances'],
     [/gapslite proprietress/i, 'Payroll & Allowances'],
@@ -277,12 +233,12 @@
     [/gapslite jumia/i, 'Online Shopping'],
     [/gapslite/i, 'Other Expense'],
 
-    // --- Income ---
+    // Income
     [/mobile trf to gtb.*baybos home school/i, 'School Fees (Parents)'],
     [/trf frm.*baybos home school/i, 'School Fees (Parents)'],
     [/\bschool fees\b|tuition|fees etc/i, 'School Fees (Parents)'],
 
-    // --- Generic transfer types (fall-through) ---
+    // Generic transfer types
     [/nibss instant payment outward/i, 'Vendor / Supplier Payment'],
     [/transfer between customers via gapslite/i, 'Vendor / Supplier Payment'],
     [/transfer between customers/i, 'Other Transfer'],
@@ -291,9 +247,32 @@
   ];
 
   // ============================================================================
-  // USER OVERRIDES — saved per browser via localStorage
+  // MASTER RULES — fetched from master-rules.json (shared layer)
+  // ============================================================================
+  let masterRules = { exact: {}, regex: [] };
+
+  async function loadMasterRules() {
+    try {
+      const res = await fetch('master-rules.json?t=' + Date.now());
+      if (!res.ok) throw new Error('not ok');
+      const data = await res.json();
+      masterRules.exact = data.rules || {};
+      masterRules.regex = (data.regex_rules || []).map(([pat, cat]) => [new RegExp(pat, 'i'), cat]);
+      const count = Object.keys(masterRules.exact).length + masterRules.regex.length;
+      if (count > 0) {
+        document.getElementById('masterRulesBadge').textContent = `Shared rules: ${count}`;
+      }
+    } catch (e) {
+      console.warn('master-rules.json not loaded:', e.message);
+    }
+  }
+  loadMasterRules();
+
+  // ============================================================================
+  // USER OVERRIDES
   // ============================================================================
   const OVERRIDE_KEY = 'baybos_statement_overrides_v1';
+  let _unsavedCount = 0;
 
   function loadOverrides() {
     try { return JSON.parse(localStorage.getItem(OVERRIDE_KEY) || '{}'); }
@@ -313,15 +292,25 @@
 
   function categorize(remarks) {
     if (!remarks) return 'Uncategorized';
-    const overrides = loadOverrides();
     const key = descKey(remarks);
-    if (overrides[key]) return overrides[key];
 
-    // Substring match — user-set short key applies to longer descriptions
+    // Layer 1: per-browser localStorage
+    const overrides = loadOverrides();
+    if (overrides[key]) return overrides[key];
     for (const ok of Object.keys(overrides)) {
       if (ok.length >= 15 && key.includes(ok)) return overrides[ok];
     }
 
+    // Layer 2: master-rules.json (shared team rules)
+    if (masterRules.exact[key]) return masterRules.exact[key];
+    for (const ok of Object.keys(masterRules.exact)) {
+      if (ok.length >= 15 && key.includes(ok)) return masterRules.exact[ok];
+    }
+    for (const [pat, cat] of masterRules.regex) {
+      if (pat.test(remarks)) return cat;
+    }
+
+    // Layer 3: built-in regex rules
     for (const [pat, cat] of BUILTIN_RULES) {
       if (pat.test(remarks)) return cat;
     }
@@ -329,38 +318,31 @@
   }
 
   // ============================================================================
-  // BANK ADAPTERS — pluggable parsers per bank format
-  // Each adapter: { name, detect(text), extractMeta(text), cleanNoise(text), parseTxns(text) }
+  // PARSER UTILS
   // ============================================================================
-
   function parseAmt(s) {
     if (!s) return 0;
-    const cleaned = String(s).replace(/[,\s]/g, '');
-    const n = parseFloat(cleaned);
+    const n = parseFloat(String(s).replace(/[,\s]/g, ''));
     return isNaN(n) ? 0 : n;
   }
   const MONTHS = '(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)';
-  const DATE_RX = new RegExp(`\\d{1,2}-${MONTHS}-\\d{4}`);
-  const TXN_DATE_PAIR_RX = new RegExp(
-    `(\\d{1,2}-${MONTHS}-\\d{4})\\s+(\\d{1,2}-${MONTHS}-\\d{4})`, 'g');
+  const TXN_DATE_PAIR_RX = new RegExp(`(\\d{1,2}-${MONTHS}-\\d{4})\\s+(\\d{1,2}-${MONTHS}-\\d{4})`, 'g');
+  const ANY_DATE_RX = new RegExp(`\\d{1,2}-${MONTHS}-\\d{4}`, 'g');
   const NUM_RX = /\b\d{1,3}(?:,\d{3})+(?:\.\d+)?\b|\b\d+\.\d{2}\b/g;
 
-  // --------------------------------------------------------------------------
-  // GTCO adapter — Guaranty Trust Bank Plc statements
-  // --------------------------------------------------------------------------
+  // ============================================================================
+  // GTCO BANK ADAPTER
+  // ============================================================================
   const GtcoAdapter = {
     name: 'Guaranty Trust Bank (GTCO)',
     code: 'gtco',
 
     detect(text) {
-      return /Guaranty Trust Bank|GTBank|GTCO/i.test(text);
+      return /Guaranty\s+Trust\s+Bank|GTBank|GTCO/i.test(text);
     },
 
     extractMeta(text) {
-      const m = (rx) => {
-        const r = text.match(rx);
-        return r ? r[1].trim() : null;
-      };
+      const m = (rx) => { const r = text.match(rx); return r ? r[1].trim() : null; };
       const parseN = (s) => s ? parseFloat(s.replace(/,/g, '')) : null;
       return {
         period: m(/Statement Period\s*:?\s*([^\n]+)/i),
@@ -375,67 +357,101 @@
     },
 
     cleanNoise(text) {
-      let t = text;
-      // 1) Strip page footer block (appears at end of every page)
+      // Step 1: Line-based filter — drop any line that's clearly noise.
+      // pdf.js can produce footer text on different lines than expected,
+      // so we filter by line content match rather than greedy regex.
+      const noisyLineRegexes = [
+        /This is a computer generated Email/i,
+        /Customer Information Unit of your local branch/i,
+        /Guaranty Trust Bank Plc Systems and Control Group/i,
+        /Fax 01-2694276/i,
+        /Awolowo Road, Ikoyi.*Victoria Island.*Lagos/i,
+        /^\s*Statement Period/i,
+        /^\s*Print\.?\s*Date\s/i,
+        /^\s*Branch Name\s/i,
+        /^\s*Account No\s+\d/i,
+        /^\s*Internal Reference\s/i,
+        /^\s*Address\s+NO/i,
+        /^\s*ABUJA\s+FCT\s*$/i,
+        /^\s*Account Type\s/i,
+        /^\s*Currency\s+NIGERIAN/i,
+        /^\s*Total Debit\s+[\d,]/i,
+        /^\s*Total Credit\s+[\d,]/i,
+        /^\s*Opening Balance\s+[\d,]/i,
+        /^\s*Closing Balance\s+[\d,]/i,
+        /^\s*Usable Balance\s+[\d,]/i,
+        /^\s*CUSTOMER STATEMENT\s*$/i,
+        /^\s*BAYBOS HOME SCHOOL\s*$/i,
+        /^\s*Trans\.?\s*Date\s+Value/i,
+        /^\s*Debits\s+Credits\s+Balance/i,
+        /^\s*Reference\s+Debits/i,
+      ];
+      let t = text.split('\n')
+        .filter(line => !noisyLineRegexes.some(p => p.test(line)))
+        .join('\n');
+
+      // Step 2: Inline strips for noise that survived (multi-item lines pdf.js merged).
+      // Strip from "This is a computer generated Email" up to ~400 chars or next date-pair.
       t = t.replace(
-        /This\s+is\s+a\s+computer\s+generated\s+Email[\s\S]{1,500}?(?:Customer\s+Information\s+Unit\s+of\s+your\s+local\s+branch\.\s*\d*\.?|local\s+branch\.\s*\d*\.?)/gi,
+        /This\s+is\s+a\s+computer\s+generated\s+Email[\s\S]{1,600}?(?=\d{1,2}-(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)-\d{4}|$)/gi,
         ' '
       );
-      // 2) Strip table headers repeated per page
+      // Same for the "Fax 01-2694276" continuation if it appears alone.
       t = t.replace(
-        /Trans\.?\s*Date\s+Value\.?\s*Date\s+Reference\s+Debits\s+Credits\s+Balance\s+Originating\s+Branch\s+Remarks/gi,
+        /Fax\s+01-2694276[\s\S]{1,400}?(?=\d{1,2}-(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)-\d{4}|$)/gi,
         ' '
       );
-      // 3) Strip the "CUSTOMER STATEMENT" banner + "BAYBOS HOME SCHOOL" header echo
-      t = t.replace(/CUSTOMER\s+STATEMENT/gi, ' ');
-      // 4) Strip statement-level metadata block at top of page 1 (we extracted what we need already)
-      t = t.replace(/Statement Period\s*:[^\n]*/gi, ' ');
-      t = t.replace(/Print\.?\s*Date\s+[^\n]*/gi, ' ');
-      t = t.replace(/Branch Name\s+[^\n]*/gi, ' ');
-      t = t.replace(/Account No\s+[^\n]*/gi, ' ');
-      t = t.replace(/Internal Reference[^\n]*/gi, ' ');
-      t = t.replace(/Account Type\s+[^\n]*/gi, ' ');
-      t = t.replace(/Currency\s+[^\n]*/gi, ' ');
-      t = t.replace(/Total Debit\s+[\d.,]+/gi, ' ');
-      t = t.replace(/Total Credit\s+[\d.,]+/gi, ' ');
-      t = t.replace(/Opening Balance\s+[\d.,]+/gi, ' ');
-      t = t.replace(/Closing Balance\s+[\d.,]+/gi, ' ');
-      t = t.replace(/Usable Balance\s+[\d.,]+/gi, ' ');
-      // 5) Strip "Address" + multi-line address block (heuristic: line containing 'ASWAN STREET' and the next 2)
-      t = t.replace(/Address\s+NO\s+\d+\s+ASWAN[\s\S]{0,80}?ABUJA\s+FCT/gi, ' ');
-      // 6) Strip the recurring "AKIN ADESOLA" originating-branch tag (not relevant to categorization)
+      // Strip the "635 AKIN ADESOLA" branch identifier — appears in every row.
       t = t.replace(/\d{3}\s+AKIN\s+ADESOLA/gi, ' ');
-      // 7) Strip standalone "BAYBOS HOME SCHOOL" if it appears on its own (header echo)
-      t = t.replace(/^\s*BAYBOS\s+HOME\s+SCHOOL\s*$/gim, ' ');
+      // Strip trailing reference fragments like "2TPT7VP6539983*********4433" and similar masked references
+      t = t.replace(/[A-Z0-9]{5,}\*+\d+/g, ' ');
+
       return t;
     },
 
+    /**
+     * Parse transactions from cleaned text.
+     * Returns: array of { transDate, valueDate, remarks, debit, credit, balance }
+     */
     parseTxns(cleanedText, meta) {
+      // Find all transaction starts
       const matches = [];
       let m;
       TXN_DATE_PAIR_RX.lastIndex = 0;
       while ((m = TXN_DATE_PAIR_RX.exec(cleanedText)) !== null) {
         matches.push({ idx: m.index, len: m[0].length, transDate: m[1], valueDate: m[2] });
       }
+      if (matches.length === 0) return [];
 
+      // Extract raw transactions
       const txns = [];
       for (let i = 0; i < matches.length; i++) {
         const start = matches[i];
         const end = i + 1 < matches.length ? matches[i + 1].idx : cleanedText.length;
         const chunk = cleanedText.substring(start.idx + start.len, end);
 
-        const noTextDates = chunk.replace(new RegExp(`\\d{1,2}-${MONTHS}-\\d{4}`, 'g'), ' ');
+        const noTextDates = chunk.replace(ANY_DATE_RX, ' ');
         const nums = [];
         let nm;
         NUM_RX.lastIndex = 0;
-        while ((nm = NUM_RX.exec(noTextDates)) !== null) nums.push(parseAmt(nm[0]));
+        while ((nm = NUM_RX.exec(noTextDates)) !== null) {
+          const n = parseAmt(nm[0]);
+          if (n > 0) nums.push(n);
+        }
 
+        // Each GTCO transaction row has exactly 2 numbers (one of [debit, credit] + balance).
+        // The LAST number is the balance, the OTHER is the amount.
         let amount = 0, balance = 0;
-        if (nums.length >= 2) { balance = nums[nums.length - 1]; amount = nums[nums.length - 2]; }
-        else if (nums.length === 1) balance = nums[0];
+        if (nums.length >= 2) {
+          balance = nums[nums.length - 1];
+          amount = nums[nums.length - 2];
+        } else if (nums.length === 1) {
+          balance = nums[0];
+        }
 
+        // Clean remarks: strip dates, numbers, leading apostrophes/pipes
         const remarks = chunk
-          .replace(new RegExp(`\\d{1,2}-${MONTHS}-\\d{4}`, 'g'), ' ')
+          .replace(ANY_DATE_RX, ' ')
           .replace(NUM_RX, ' ')
           .replace(/[\r\n]+/g, ' ')
           .replace(/\s+/g, ' ')
@@ -448,77 +464,113 @@
         });
       }
 
-      // Resolve debit vs credit using balance trend, anchored on opening balance
+      // Filter out obviously bogus transactions (no amount AND no remarks)
+      const filtered = txns.filter(t => t._amount > 0 || (t.remarks && t.remarks.length > 5));
+
+      // Determine debit vs credit using HYBRID approach
+      this._resolveDebitCredit(filtered, meta);
+
+      return filtered;
+    },
+
+    /**
+     * Hybrid debit/credit determination.
+     * - Primary: balance arithmetic (prev_balance ± amount ≈ current_balance)
+     * - Secondary: keyword hints
+     * - Tertiary: default to debit (school is mostly spending)
+     */
+    _resolveDebitCredit(txns, meta) {
+      const isLikelyCreditByKeyword = (rem) => {
+        // Income markers — money coming IN
+        return /\btrf\s+frm\b|\bmobile\s+trf\s+to\s+gtb[^|]*?baybos\s+home\s+school\b|\brefund\s+from\b|\breversal\b|\bschool\s+fees\b|\btuition\b|\bfees\s+etc\b/i.test(rem);
+      };
+      const isLikelyDebitByKeyword = (rem) => {
+        // Expense markers — money going OUT
+        return /\btrf\s+to\b|\bgapslite\b|\bstamp\s+dut/i.test(rem)
+            || /\bvatcharges?\b|\bvat\s+charges?\b|\bcommission\s+on\s+nip\b|\bnibss\s+instant\s+payment\s+outward\b/i.test(rem)
+            || /\bpos\b|\bweb\s+transfer/i.test(rem)
+            || /\bmaintenance\s+fee\b|\bsms\s+notification\b/i.test(rem);
+      };
+
       let priorBalance = meta && meta.openingBalance !== null ? meta.openingBalance : null;
+
       for (let i = 0; i < txns.length; i++) {
         const t = txns[i];
-        if (t._amount === 0) { priorBalance = t.balance; continue; }
-        if (priorBalance !== null) {
+        if (t._amount === 0) {
+          priorBalance = t.balance || priorBalance;
+          continue;
+        }
+
+        const keyCredit = isLikelyCreditByKeyword(t.remarks);
+        const keyDebit = isLikelyDebitByKeyword(t.remarks);
+
+        // Try arithmetic determination if we have prior + current balance
+        let arithSays = null;
+        if (priorBalance !== null && t.balance > 0) {
           const ifDebit = priorBalance - t._amount;
           const ifCredit = priorBalance + t._amount;
-          if (Math.abs(ifDebit - t.balance) < Math.abs(ifCredit - t.balance)) t.debit = t._amount;
-          else t.credit = t._amount;
-        } else {
-          // No anchor — use next transaction's balance trend
-          if (i + 1 < txns.length) {
-            const next = txns[i + 1];
-            const ifThisDebit_thenNext = t.balance + (next._amount || 0);
-            const ifThisCredit_thenNext = t.balance - (next._amount || 0);
-            if (Math.abs(ifThisDebit_thenNext - next.balance) < Math.abs(ifThisCredit_thenNext - next.balance)) {
-              t.credit = t._amount;
-            } else {
-              t.debit = t._amount;
-            }
-          } else t.debit = t._amount;
+          const debitDiff = Math.abs(ifDebit - t.balance);
+          const creditDiff = Math.abs(ifCredit - t.balance);
+          if (Math.abs(debitDiff - creditDiff) > 0.005) {
+            arithSays = debitDiff < creditDiff ? 'debit' : 'credit';
+          }
         }
-        priorBalance = t.balance;
+
+        // Combine signals: keyword > arithmetic > default
+        let side;
+        if (keyCredit && !keyDebit) side = 'credit';
+        else if (keyDebit && !keyCredit) side = 'debit';
+        else if (arithSays) side = arithSays;
+        else side = 'debit'; // safe default — school is mostly spending
+
+        if (side === 'debit') t.debit = t._amount;
+        else t.credit = t._amount;
+
+        priorBalance = t.balance || priorBalance;
         delete t._amount;
       }
 
-      return txns;
+      // SECOND PASS — validate: if total debits/credits diverge wildly from header totals,
+      // try a single global flip on rows that were assigned by default
+      if (meta && meta.totalDebit !== null && meta.totalCredit !== null) {
+        const sumDebit = txns.reduce((s, t) => s + t.debit, 0);
+        const sumCredit = txns.reduce((s, t) => s + t.credit, 0);
+        const debitOff = Math.abs(sumDebit - meta.totalDebit);
+        const creditOff = Math.abs(sumCredit - meta.totalCredit);
+        // If we're way off, log it but don't auto-correct (could mask deeper bug)
+        if (debitOff > meta.totalDebit * 0.1 || creditOff > meta.totalCredit * 0.1) {
+          console.warn('Sum mismatch vs header:', {
+            parsedDebit: sumDebit, headerDebit: meta.totalDebit,
+            parsedCredit: sumCredit, headerCredit: meta.totalCredit,
+          });
+        }
+      }
     },
   };
 
-  // --------------------------------------------------------------------------
-  // ZENITH BANK adapter — skeleton (not yet implemented)
-  // --------------------------------------------------------------------------
+  // ============================================================================
+  // BANK ADAPTER SKELETONS
+  // ============================================================================
   const ZenithAdapter = {
-    name: 'Zenith Bank',
-    code: 'zenith',
-    detect(text) { return /Zenith Bank/i.test(text); },
-    extractMeta(text) { return {}; },
-    cleanNoise(text) { return text; },
-    parseTxns(text, meta) {
-      throw new Error('Zenith parser not yet implemented. Send a sample statement to develop it.');
-    },
+    name: 'Zenith Bank', code: 'zenith',
+    detect(t) { return /Zenith\s+Bank/i.test(t); },
+    extractMeta() { return {}; },
+    cleanNoise(t) { return t; },
+    parseTxns() { throw new Error('Zenith parser not yet implemented. Send a sample to develop it.'); },
   };
-
-  // --------------------------------------------------------------------------
-  // ACCESS BANK adapter — skeleton
-  // --------------------------------------------------------------------------
   const AccessAdapter = {
-    name: 'Access Bank',
-    code: 'access',
-    detect(text) { return /Access Bank/i.test(text); },
-    extractMeta(text) { return {}; },
-    cleanNoise(text) { return text; },
-    parseTxns(text, meta) {
-      throw new Error('Access parser not yet implemented.');
-    },
+    name: 'Access Bank', code: 'access',
+    detect(t) { return /Access\s+Bank/i.test(t); },
+    extractMeta() { return {}; },
+    cleanNoise(t) { return t; },
+    parseTxns() { throw new Error('Access parser not yet implemented.'); },
   };
-
-  // --------------------------------------------------------------------------
-  // FBN (First Bank) adapter — skeleton
-  // --------------------------------------------------------------------------
   const FbnAdapter = {
-    name: 'First Bank of Nigeria (FBN)',
-    code: 'fbn',
-    detect(text) { return /First Bank of Nigeria|FirstBank/i.test(text); },
-    extractMeta(text) { return {}; },
-    cleanNoise(text) { return text; },
-    parseTxns(text, meta) {
-      throw new Error('FBN parser not yet implemented.');
-    },
+    name: 'First Bank of Nigeria (FBN)', code: 'fbn',
+    detect(t) { return /First\s+Bank\s+of\s+Nigeria|FirstBank/i.test(t); },
+    extractMeta() { return {}; },
+    cleanNoise(t) { return t; },
+    parseTxns() { throw new Error('FBN parser not yet implemented.'); },
   };
 
   const BANK_ADAPTERS = [GtcoAdapter, ZenithAdapter, AccessAdapter, FbnAdapter];
@@ -565,12 +617,8 @@
         for (const item of row) {
           if (line) {
             const gap = item.x - prevEnd;
-            if (gap > 8) {
-              const n = Math.min(8, Math.max(2, Math.round(gap / 6)));
-              line += ' '.repeat(n);
-            } else {
-              line += ' ';
-            }
+            if (gap > 8) line += ' '.repeat(Math.min(8, Math.max(2, Math.round(gap / 6))));
+            else line += ' ';
           }
           line += item.str;
           prevEnd = item.x + item.width;
@@ -608,14 +656,14 @@
     const closing = meta.closingBalance !== undefined ? meta.closingBalance :
                     (state.txns.length ? state.txns[state.txns.length - 1].balance : 0);
 
-    // Bank badges
     document.getElementById('bankBadge').textContent = state.adapter ? state.adapter.name : 'Bank: unknown';
     document.getElementById('periodBadge').textContent = meta.period ? `Period: ${meta.period}` : '';
     document.getElementById('accountBadge').textContent = meta.accountNo ? `Account: ${meta.accountNo}` : '';
 
-    // Validation against header totals
     const validation = (meta.totalDebit !== null && meta.totalCredit !== null)
-      ? (Math.abs(totalDebit - meta.totalDebit) < 1 && Math.abs(totalCredit - meta.totalCredit) < 1 ? '✓ matches header' : '⚠ header mismatch')
+      ? (Math.abs(totalDebit - meta.totalDebit) < 1 && Math.abs(totalCredit - meta.totalCredit) < 1
+         ? '✓ matches header'
+         : `⚠ off: header says ${fmtShort(meta.totalDebit)} dr / ${fmtShort(meta.totalCredit)} cr`)
       : '';
 
     document.getElementById('summary').innerHTML = `
@@ -630,13 +678,11 @@
     state.txns.forEach(t => {
       if (t.debit > 0) {
         expByCat[t.category] = expByCat[t.category] || { amount: 0, count: 0 };
-        expByCat[t.category].amount += t.debit;
-        expByCat[t.category].count += 1;
+        expByCat[t.category].amount += t.debit; expByCat[t.category].count += 1;
       }
       if (t.credit > 0) {
         incByCat[t.category] = incByCat[t.category] || { amount: 0, count: 0 };
-        incByCat[t.category].amount += t.credit;
-        incByCat[t.category].count += 1;
+        incByCat[t.category].amount += t.credit; incByCat[t.category].count += 1;
       }
     });
 
@@ -668,10 +714,7 @@
         return `<button data-cat="${c}" class="${state.filter === c ? 'active' : ''}">${c} (${n})</button>`;
       }).join('');
     filtersEl.querySelectorAll('button').forEach(btn => {
-      btn.addEventListener('click', () => {
-        state.filter = btn.dataset.cat;
-        render();
-      });
+      btn.addEventListener('click', () => { state.filter = btn.dataset.cat; render(); });
     });
 
     renderTxnTable();
@@ -693,11 +736,9 @@
     filtered.forEach(t => {
       const txnIdx = state.txns.indexOf(t);
       const isOverridden = overrides[descKey(t.remarks)] !== undefined;
-      const selectOpts = CATEGORIES.map(c =>
-        `<option value="${c}" ${c === t.category ? 'selected' : ''}>${c}</option>`
-      ).join('');
+      const selectOpts = CATEGORIES.map(c => `<option value="${c}" ${c === t.category ? 'selected' : ''}>${c}</option>`).join('');
       const descClean = (t.remarks || '').slice(0, 260);
-      const descTrunc = descClean.length > 200 ? descClean.slice(0, 200) + '…' : descClean;
+      const descTrunc = descClean.length > 220 ? descClean.slice(0, 220) + '…' : descClean;
       const row = document.createElement('tr');
       row.innerHTML = `
         <td>${t.transDate}</td>
@@ -706,9 +747,7 @@
             ${selectOpts}
           </select>
         </td>
-        <td>
-          <div class="row-desc">${escapeHtml(descTrunc)}</div>
-        </td>
+        <td><div class="row-desc">${escapeHtml(descTrunc)}</div></td>
         <td class="num debit">${t.debit ? fmtShort(t.debit) : ''}</td>
         <td class="num credit">${t.credit ? fmtShort(t.credit) : ''}</td>
         <td class="num" style="color:var(--muted)">${fmtShort(t.balance)}</td>
@@ -723,6 +762,10 @@
         const ov = loadOverrides();
         ov[descKey(t.remarks)] = e.target.value;
         saveOverrides(ov);
+        _unsavedCount += 1;
+        if (_unsavedCount % 10 === 0) {
+          toast(`${_unsavedCount} edits saved. Consider clicking "Export rules JSON" to back them up.`, 'warn');
+        }
         render();
       });
     });
@@ -731,13 +774,10 @@
   function escapeHtml(s) {
     return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   }
-
-  function toggleSection(id) {
-    document.querySelector(`#${id} tbody`).classList.toggle('hidden');
-  }
+  function toggleSection(id) { document.querySelector(`#${id} tbody`).classList.toggle('hidden'); }
 
   // ============================================================================
-  // CSV PARSE / EXPORT
+  // CSV PARSE / EXPORT / IMPORT
   // ============================================================================
   function csvEscape(v) {
     if (v === null || v === undefined) return '""';
@@ -747,12 +787,9 @@
     const out = []; let cur = ''; let inQ = false;
     for (let i = 0; i < line.length; i++) {
       const c = line[i];
-      if (c === '"') {
-        if (inQ && line[i + 1] === '"') { cur += '"'; i++; }
-        else inQ = !inQ;
-      } else if (c === ',' && !inQ) {
-        out.push(cur); cur = '';
-      } else cur += c;
+      if (c === '"') { if (inQ && line[i + 1] === '"') { cur += '"'; i++; } else inQ = !inQ; }
+      else if (c === ',' && !inQ) { out.push(cur); cur = ''; }
+      else cur += c;
     }
     out.push(cur);
     return out;
@@ -760,11 +797,8 @@
 
   function exportCategorized() {
     const rows = [['Trans Date', 'Value Date', 'Category', 'Description', 'Debit (NGN)', 'Credit (NGN)', 'Balance (NGN)']];
-    state.txns.forEach(t => {
-      rows.push([t.transDate, t.valueDate, t.category, t.remarks, t.debit || '', t.credit || '', t.balance]);
-    });
-    const csv = rows.map(r => r.map(csvEscape).join(',')).join('\n');
-    download('baybos-statement-categorized.csv', csv, 'text/csv');
+    state.txns.forEach(t => rows.push([t.transDate, t.valueDate, t.category, t.remarks, t.debit || '', t.credit || '', t.balance]));
+    download('baybos-statement-categorized.csv', rows.map(r => r.map(csvEscape).join(',')).join('\n'), 'text/csv');
   }
 
   function exportSummary() {
@@ -776,27 +810,23 @@
       if (t.credit > 0) incByCat[t.category] = (incByCat[t.category] || 0) + t.credit;
     });
     const rows = [['Type', 'Category', 'Amount (NGN)', '% of Total']];
-    Object.entries(incByCat).sort((a, b) => b[1] - a[1]).forEach(([c, a]) => {
-      rows.push(['Income', c, a.toFixed(2), totalCredit ? (a / totalCredit * 100).toFixed(1) + '%' : '']);
-    });
-    Object.entries(expByCat).sort((a, b) => b[1] - a[1]).forEach(([c, a]) => {
-      rows.push(['Expense', c, a.toFixed(2), totalDebit ? (a / totalDebit * 100).toFixed(1) + '%' : '']);
-    });
-    const csv = rows.map(r => r.map(csvEscape).join(',')).join('\n');
-    download('baybos-statement-summary.csv', csv, 'text/csv');
+    Object.entries(incByCat).sort((a, b) => b[1] - a[1]).forEach(([c, a]) =>
+      rows.push(['Income', c, a.toFixed(2), totalCredit ? (a / totalCredit * 100).toFixed(1) + '%' : '']));
+    Object.entries(expByCat).sort((a, b) => b[1] - a[1]).forEach(([c, a]) =>
+      rows.push(['Expense', c, a.toFixed(2), totalDebit ? (a / totalDebit * 100).toFixed(1) + '%' : '']));
+    download('baybos-statement-summary.csv', rows.map(r => r.map(csvEscape).join(',')).join('\n'), 'text/csv');
   }
 
   function importMasterCsv(file) {
     const reader = new FileReader();
     reader.onload = (e) => {
       const lines = e.target.result.split(/\r?\n/).filter(l => l.trim());
-      if (!lines.length) { alert('Empty file.'); return; }
+      if (!lines.length) return toast('Empty file.', 'warn');
       const headers = parseCsvLine(lines[0]).map(c => c.replace(/^"|"$/g, '').trim().toLowerCase());
       const descIdx = headers.findIndex(h => h === 'description' || h === 'remarks');
       const catIdx = headers.findIndex(h => h === 'category');
       if (descIdx < 0 || catIdx < 0) {
-        alert('CSV must have "Description" and "Category" columns. Headers found: ' + headers.join(', '));
-        return;
+        return toast(`CSV must have "Description" and "Category" columns. Got: ${headers.join(', ')}`, 'warn');
       }
       const overrides = loadOverrides();
       let added = 0, skipped = 0;
@@ -804,14 +834,13 @@
         const cells = parseCsvLine(lines[i]).map(c => c.replace(/^"|"$/g, ''));
         const desc = (cells[descIdx] || '').trim();
         const cat = (cells[catIdx] || '').trim();
-        if (!desc || !cat || cat === 'Uncategorized') { skipped++; continue; }
-        if (!CATEGORIES.includes(cat)) { skipped++; continue; }
+        if (!desc || !cat || cat === 'Uncategorized' || !CATEGORIES.includes(cat)) { skipped++; continue; }
         overrides[descKey(desc)] = cat;
         added++;
       }
       saveOverrides(overrides);
       if (state.txns.length) render();
-      alert(`Imported master CSV: ${added} rules added, ${skipped} rows skipped (no category or invalid).`);
+      toast(`Imported master CSV: ${added} rules added, ${skipped} skipped.`);
     };
     reader.readAsText(file);
   }
@@ -823,6 +852,7 @@
       categories: CATEGORIES, overrides: ov,
     }, null, 2);
     download('baybos-custom-rules.json', blob, 'application/json');
+    _unsavedCount = 0;
   }
 
   function importRulesFile(file) {
@@ -833,16 +863,17 @@
         if (data.overrides) {
           saveOverrides({ ...loadOverrides(), ...data.overrides });
           if (state.txns.length) render();
-          alert(`Imported ${Object.keys(data.overrides).length} custom rules.`);
-        } else alert('No "overrides" key in file.');
-      } catch (err) { alert('Could not parse JSON: ' + err.message); }
+          toast(`Imported ${Object.keys(data.overrides).length} custom rules.`);
+        } else toast('No "overrides" key in file.', 'warn');
+      } catch (err) { toast('Could not parse JSON: ' + err.message, 'warn'); }
     };
     reader.readAsText(file);
   }
 
   function clearRules() {
-    if (confirm('Remove all your custom category overrides? (Built-in rules stay.)')) {
+    if (confirm('Remove all your custom category overrides? (Built-in & shared rules stay.)')) {
       saveOverrides({});
+      _unsavedCount = 0;
       if (state.txns.length) render();
     }
   }
@@ -853,6 +884,13 @@
     const a = document.createElement('a');
     a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
     URL.revokeObjectURL(url);
+  }
+
+  function toast(msg, kind = 'info') {
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.className = 'toast show' + (kind === 'warn' ? ' warn' : '');
+    setTimeout(() => el.classList.remove('show'), 4000);
   }
 
   // ============================================================================
@@ -872,31 +910,18 @@
     drop.classList.remove('drag-over');
     if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
   });
-  fileInput.addEventListener('change', e => {
-    if (e.target.files[0]) handleFile(e.target.files[0]);
-  });
+  fileInput.addEventListener('change', e => { if (e.target.files[0]) handleFile(e.target.files[0]); });
   document.getElementById('exportCsv').addEventListener('click', exportCategorized);
   document.getElementById('exportSummary').addEventListener('click', exportSummary);
   document.getElementById('importMaster').addEventListener('click', () => document.getElementById('masterFileInput').click());
-  document.getElementById('masterFileInput').addEventListener('change', e => {
-    if (e.target.files[0]) importMasterCsv(e.target.files[0]);
-  });
+  document.getElementById('masterFileInput').addEventListener('change', e => { if (e.target.files[0]) importMasterCsv(e.target.files[0]); });
   document.getElementById('exportRules').addEventListener('click', exportRules);
   document.getElementById('importRules').addEventListener('click', () => document.getElementById('rulesFileInput').click());
-  document.getElementById('rulesFileInput').addEventListener('change', e => {
-    if (e.target.files[0]) importRulesFile(e.target.files[0]);
-  });
+  document.getElementById('rulesFileInput').addEventListener('change', e => { if (e.target.files[0]) importRulesFile(e.target.files[0]); });
   document.getElementById('clearRules').addEventListener('click', clearRules);
-  document.getElementById('searchBox').addEventListener('input', e => {
-    state.search = e.target.value;
-    renderTxnTable();
-  });
-  document.getElementById('downloadRaw').addEventListener('click', () => {
-    download('baybos-rawtext.txt', state.rawText, 'text/plain');
-  });
-  document.getElementById('downloadCleaned').addEventListener('click', () => {
-    download('baybos-cleanedtext.txt', state.cleanedText, 'text/plain');
-  });
+  document.getElementById('searchBox').addEventListener('input', e => { state.search = e.target.value; renderTxnTable(); });
+  document.getElementById('downloadRaw').addEventListener('click', () => download('baybos-rawtext.txt', state.rawText, 'text/plain'));
+  document.getElementById('downloadCleaned').addEventListener('click', () => download('baybos-cleanedtext.txt', state.cleanedText, 'text/plain'));
 
   async function handleFile(file) {
     statusEl.textContent = `Reading ${file.name} (${(file.size / 1024).toFixed(1)} KB)…`;
@@ -910,9 +935,8 @@
       progressBar.style.width = '85%';
 
       const adapter = detectAdapter(extracted.text);
-      if (!adapter) {
-        throw new Error('Could not detect bank format. Currently supported: GTCO. Open an issue to add your bank.');
-      }
+      if (!adapter) throw new Error('Could not detect bank. Currently: GTCO. Others: scaffolded.');
+
       state.adapter = adapter;
       state.rawText = extracted.text;
       state.meta = adapter.extractMeta(extracted.text);
@@ -921,14 +945,13 @@
       statusEl.textContent = `Detected ${adapter.name}. Parsing transactions…`;
       state.txns = adapter.parseTxns(state.cleanedText, state.meta);
 
-      document.getElementById('rawText').textContent = extracted.text.slice(0, 60000);
+      document.getElementById('rawText').textContent = state.cleanedText.slice(0, 60000);
       document.getElementById('debugSummary').innerHTML = `
-        Bank: <strong>${adapter.name}</strong> ·
-        Pages: ${extracted.pages} · Items: ${extracted.items} ·
-        Raw lines: ${extracted.text.split('\n').length} · Cleaned lines: ${state.cleanedText.split('\n').length} ·
-        Transactions parsed: <strong>${state.txns.length}</strong> ·
-        Opening: ${state.meta.openingBalance !== null ? fmtShort(state.meta.openingBalance) : 'unknown'} ·
-        Closing: ${state.meta.closingBalance !== null ? fmtShort(state.meta.closingBalance) : 'unknown'}
+        Bank: <strong>${adapter.name}</strong> · Pages: ${extracted.pages} · Items: ${extracted.items} ·
+        Raw lines: ${extracted.text.split('\n').length} → Cleaned: ${state.cleanedText.split('\n').length} ·
+        Transactions: <strong>${state.txns.length}</strong> ·
+        Opening: ${state.meta.openingBalance !== null ? fmtShort(state.meta.openingBalance) : '?'} ·
+        Closing: ${state.meta.closingBalance !== null ? fmtShort(state.meta.closingBalance) : '?'}
       `;
 
       progressBar.style.width = '100%';
