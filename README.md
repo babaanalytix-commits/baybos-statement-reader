@@ -1,40 +1,42 @@
 # Baybos Statement Reader
 
-A simple, private bank-statement categorizer for **Baybos Home School**.
+A private, browser-only tool that categorizes bank statements for **Baybos Home School**.
 
-Drop a GTCO Bank PDF statement → see every transaction sorted into school categories (Payroll, Books, Sports Day, Maintenance, Bank Charges, School Fees, etc.) → download a clean CSV for the accounts.
+Drop a bank statement PDF → see every transaction sorted into school categories (Payroll, Books, Sports Day, Maintenance, Bank Charges, School Fees, etc.) → download clean CSVs for the accounts.
 
-**Privacy:** the PDF is read inside your browser. Nothing is uploaded anywhere.
+**Privacy:** the PDF is read inside the browser. Nothing uploads anywhere.
 
-**Live tool:** [open here](https://oguntona.github.io/baybos-statement-reader/) *(after you've published to GitHub Pages — see "Deploy" below).*
+**Live:** [open the tool](https://babaanalytix-commits.github.io/baybos-statement-reader/)
 
 ---
 
 ## What it does
 
-1. Reads a GTCO Bank statement (PDF). All pages, multi-line transactions handled correctly.
-2. Categorizes every transaction using rules tuned for Baybos's "GAPSLITE" expense narration convention. Examples:
-    - `GAPSLITE T SHIRTS` → **Uniforms & Sports**
-    - `GAPSLITE CEMENT TO MONIEMFB` → **Maintenance & Construction**
-    - `GAPSLITE SATURDAY ALLOWANCE` → **Payroll & Allowances**
-    - `MOBILE TRF TO GTB FATIMA BAYBOS HOME SCHOOL` → **School Fees (Parents)**
-    - `Commission on NIP Transfer` → **Bank Charges**
-3. Shows totals, per-category breakdowns, and a filterable transaction table.
-4. Lets you **override any category** via dropdown. Your changes are remembered — the next time the same description appears (even in next month's statement), the tool uses your category automatically.
-5. Exports a categorized CSV (line by line) or a summary CSV (per category).
-6. Lets you export your custom rules as JSON (so you can share them, back them up, or move them to another browser).
+1. **Reads bank statements.** Currently GTCO (Guaranty Trust Bank); Zenith, Access, FBN scaffolded.
+2. **Strips boilerplate.** Each PDF page has a repeating footer ("This is a computer generated Email…") and table header — the parser removes these before extracting transactions.
+3. **Auto-categorizes** using rules tuned for the school's "GAPSLITE" expense narration convention:
+   - `GAPSLITE T SHIRTS` → **Uniforms & Sports**
+   - `GAPSLITE CEMENT TO MONIEMFB` → **Maintenance & Construction**
+   - `GAPSLITE SATURDAY ALLOWANCE` → **Payroll & Allowances**
+   - `MOBILE TRF TO GTB … BAYBOS HOME SCHOOL` → **School Fees (Parents)**
+   - `Commission on NIP Transfer` → **Bank Charges**
+4. **Lets the accountant correct anything.** Two ways:
+   - **Quick:** change the dropdown on any row. The tool remembers and applies the same category to that description in future statements.
+   - **Bulk:** download the categorized CSV, fill in the **Category** column in Excel for any Uncategorized or wrong rows, then click **Import master CSV** and upload the edited file. Every category you set becomes a rule.
+5. **Exports** a row-by-row categorized CSV or a summary CSV (per category).
+6. **Shares rules.** Export your custom rules as JSON, send to someone else, they import — instant training transfer.
 
 ---
 
-## How the accountant uses it
+## How the process improves over time
 
-1. Open the live tool URL on a laptop or desktop.
-2. Drag the latest GTCO statement PDF into the drop zone.
-3. Scan the **Expenses by category** and **Income by source** tables at the top — the categorization happens automatically.
-4. Scroll to the **Transactions** table. For any row that's been put in the wrong category, change the dropdown. The tool learns from each correction.
-5. Click **Download CSV (categorized)** for a row-by-row file, or **Download summary CSV** for a per-category roll-up.
+| Month | Auto-categorized | Manual work |
+|---|---|---|
+| 1 | ~50% | Brother fills in the rest, becomes rules |
+| 2 | ~80% | Only new/unique transactions need attention |
+| 3+ | ~95% | Almost just edge cases |
 
-The tool runs entirely in the browser. Closing the page does not lose your custom rules — they're stored locally and applied to every future statement you open.
+Each correction the accountant makes becomes a permanent rule in the browser's localStorage. Export the rules JSON periodically as a backup or to merge with the master tool.
 
 ---
 
@@ -62,42 +64,46 @@ The tool runs entirely in the browser. Closing the page does not lose your custo
 
 ---
 
-## Deploy to GitHub Pages (one-time setup)
+## Architecture
 
-Once this is in a GitHub repo:
+### Bank adapters (extensible)
 
-1. Push the `index.html` and `README.md` to a public GitHub repository (any name; `baybos-statement-reader` recommended).
-2. In the GitHub repo → **Settings** → **Pages**.
-3. Set **Source** to "Deploy from a branch", **Branch** to `main` (folder `/ (root)`), then click **Save**.
-4. After ~30 seconds, the tool will be live at `https://<your-github-username>.github.io/<repo-name>/`.
+The parser is split into per-bank adapters. Each one knows how to:
+- Detect its own bank from PDF text (`detect`)
+- Extract statement metadata (`extractMeta`) — opening/closing balance, period, account
+- Strip noise specific to its layout (`cleanNoise`) — page footers, table headers
+- Parse transactions into a normalized model (`parseTxns`)
 
-Share that URL with anyone who needs to use the tool. No login, no account, no install.
-
----
-
-## Running locally
-
-Just open `index.html` in any modern browser (Chrome, Safari, Edge, Firefox). No build step, no dependencies — pdf.js is loaded from a CDN.
-
----
-
-## Adapting the rules
-
-The built-in rules live in the `BUILTIN_RULES` array near the top of the `<script>` block in `index.html`. Each rule is `[/regex/i, 'Category Name']`. The first regex that matches wins.
-
-To add a new rule, paste it into the array in the right place (more specific rules go first). Example:
+The normalized transaction model is bank-agnostic:
 
 ```js
-[/gapslite party supplies/i, 'Sports Day & Events'],
+{ transDate, valueDate, remarks, debit, credit, balance }
 ```
+
+Adding a new bank means adding one adapter object — categorization, UI, CSV export, override tracking all work unchanged.
+
+### Master CSV workflow
+
+The "Import master CSV" workflow lets the accountant teach the tool in bulk:
+
+1. Download the categorized CSV.
+2. Open in Excel. For any row marked **Uncategorized** (or wrongly categorized), set the **Category** column to the correct value.
+3. Save and upload via "Import master CSV". Every (Description, Category) pair becomes a rule.
+4. The next statement uses those rules automatically.
+
+Rules match on description text (lowercase, whitespace-normalized, long numeric references replaced by `#`). A shorter rule key is matched as a substring against longer descriptions — so a rule set on a small distinctive phrase applies broadly.
+
+### Future: bank APIs
+
+The same normalized transaction model works for bank API responses (Mono, Okra, Plaid). Adding API ingestion = one more adapter at the input side, no other code touched.
 
 ---
 
-## Privacy & data handling
+## Deploy
 
-- The PDF is read by the browser. No file or text leaves your device.
-- Custom rules (your category overrides) are saved in **localStorage**, scoped to the browser on the machine you used. Clearing browser data clears the rules. Use **Export my custom rules** to back them up.
-- pdf.js (the PDF reading library) is loaded from a public CDN at page load. After that, the page works fully offline.
+Already deployed at https://babaanalytix-commits.github.io/baybos-statement-reader/ via GitHub Pages from the `master` branch.
+
+To update: commit + push to `master`. Pages redeploys in ~30 seconds.
 
 ---
 
