@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Baybos · Statement Reader</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='80' font-size='80'%3E📊%3C/text%3E%3C/svg%3E">
+  <style>
+    :root {
+      --bg: #fafaf7;
+      --card: #fff;
+      --ink: #111827;
+      --muted: #6b7280;
+      --line: #e5e7eb;
+      --accent: #b91c1c;
+      --green: #047857;
+      --indigo: #4338ca;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      line-height: 1.5;
+    }
+    header {
+      background: linear-gradient(135deg, #1e3a8a 0%, #4338ca 100%);
+      color: white;
+      padding: 20px 28px;
+    }
+    header h1 { margin: 0 0 2px; font-size: 20px; }
+    header p { margin: 0; opacity: 0.85; font-size: 12px; }
+    .container { max-width: 1280px; margin: 0 auto; padding: 20px 28px 60px; }
+    .drop-zone {
+      border: 2px dashed #cbd5e1; border-radius: 12px; padding: 32px 24px;
+      text-align: center; background: var(--card); cursor: pointer; transition: all 0.15s;
+    }
+    .drop-zone:hover, .drop-zone.drag-over { border-color: var(--indigo); background: #eef2ff; }
+    .drop-zone p { margin: 4px 0; color: var(--muted); }
+    .drop-zone .icon { font-size: 32px; }
+    .grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 10px; margin: 16px 0;
+    }
+    .stat {
+      background: var(--card); padding: 14px; border-radius: 10px;
+      border: 1px solid var(--line);
+    }
+    .stat .label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+    .stat .value { font-size: 20px; font-weight: 700; margin-top: 4px; }
+    .panel {
+      background: var(--card); border: 1px solid var(--line); border-radius: 10px;
+      padding: 18px; margin-bottom: 14px;
+    }
+    .panel h2 { margin: 0 0 10px; font-size: 15px; }
+    table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    th { text-align: left; padding: 9px 6px; border-bottom: 2px solid var(--line); font-weight: 600; color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.3px; }
+    td { padding: 7px 6px; border-bottom: 1px solid var(--line); vertical-align: top; }
+    .num { text-align: right; font-variant-numeric: tabular-nums; }
+    .num.debit { color: var(--accent); }
+    .num.credit { color: var(--green); }
+    .pill {
+      display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px;
+      font-weight: 500; background: #f3f4f6; white-space: nowrap;
+    }
+    .bar { height: 6px; background: var(--line); border-radius: 3px; overflow: hidden; flex: 1; min-width: 120px; }
+    .bar-fill { height: 100%; }
+    .bar-fill.debit { background: var(--accent); }
+    .bar-fill.credit { background: var(--green); }
+    .bar-row { display: flex; align-items: center; gap: 8px; }
+    .controls { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; align-items: center; }
+    button {
+      padding: 7px 12px; border: 1px solid var(--line); background: white; border-radius: 6px;
+      cursor: pointer; font-size: 12px; font-weight: 500;
+    }
+    button:hover { background: #f9fafb; }
+    button.primary { background: var(--indigo); color: white; border-color: var(--indigo); }
+    button.primary:hover { background: #3730a3; }
+    button.ghost { background: transparent; border: none; color: var(--indigo); padding: 4px 8px; }
+    button.ghost:hover { background: #eef2ff; }
+    .hidden { display: none !important; }
+    #status { font-size: 12px; color: var(--muted); margin-top: 10px; }
+    .quick-filters { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+    .quick-filters button { padding: 3px 9px; font-size: 11px; }
+    .quick-filters button.active { background: var(--ink); color: white; border-color: var(--ink); }
+    select.category-select {
+      padding: 3px 6px; font-size: 11px; border-radius: 4px; border: 1px solid var(--line);
+      background: white; cursor: pointer; max-width: 180px;
+    }
+    select.category-select.modified { border-color: var(--indigo); background: #eef2ff; }
+    .search-box { padding: 6px 10px; border: 1px solid var(--line); border-radius: 6px; font-size: 12px; width: 240px; }
+    .progress {
+      width: 100%; height: 4px; background: var(--line); border-radius: 2px; overflow: hidden;
+      margin-top: 8px;
+    }
+    .progress-bar { height: 100%; background: var(--indigo); transition: width 0.2s; }
+    details { margin-top: 12px; }
+    summary { cursor: pointer; color: var(--muted); font-size: 12px; }
+    pre.raw { background: #1f2937; color: #e5e7eb; padding: 12px; border-radius: 6px; font-size: 11px; max-height: 360px; overflow: auto; }
+    .help { background: #fef3c7; border: 1px solid #fcd34d; border-radius: 8px; padding: 12px; font-size: 13px; }
+    .help strong { color: #92400e; }
+    .footer-note { font-size: 11px; color: var(--muted); margin-top: 20px; text-align: center; }
+    .badge { font-size: 9px; padding: 1px 5px; border-radius: 8px; background: var(--indigo); color: white; margin-left: 4px; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>📊 Baybos Statement Reader</h1>
+    <p>Drop a GTCO bank statement (PDF). Everything stays in your browser — nothing is uploaded.</p>
+  </header>
+
+  <div class="container">
+    <div id="drop" class="drop-zone">
+      <div class="icon">📥</div>
+      <p><strong>Drop a statement here</strong> or click to choose</p>
+      <p style="font-size: 11px;">PDF · GTCO format. All pages processed. Categorization tuned for Baybos's GAPSLITE narration.</p>
+      <input type="file" id="fileInput" accept="application/pdf,.pdf" hidden>
+    </div>
+    <div id="status"></div>
+    <div id="progress" class="progress hidden"><div id="progressBar" class="progress-bar" style="width: 0%"></div></div>
+
+    <div id="results" class="hidden">
+      <div class="grid" id="summary"></div>
+
+      <div class="panel">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <h2>💸 Expenses by category</h2>
+          <button class="ghost" onclick="toggleSection('expenseTable')">collapse</button>
+        </div>
+        <table id="expenseTable">
+          <thead><tr><th>Category</th><th class="num">Amount (₦)</th><th class="num">Txns</th><th style="width: 40%;">% of expenses</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <div class="panel">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <h2>💰 Income (credits) by source</h2>
+          <button class="ghost" onclick="toggleSection('incomeTable')">collapse</button>
+        </div>
+        <table id="incomeTable">
+          <thead><tr><th>Source</th><th class="num">Amount (₦)</th><th class="num">Txns</th><th style="width: 40%;">% of income</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <div class="panel">
+        <h2>📋 Transactions <span id="overrideCount" style="font-size: 11px; color: var(--muted);"></span></h2>
+        <p style="font-size: 12px; color: var(--muted); margin-bottom: 12px;">
+          To re-categorize a transaction, change the dropdown in the Category column.
+          Changes are remembered — next time the same description appears, your category is applied automatically.
+        </p>
+        <div class="quick-filters" id="catFilters"></div>
+        <div class="controls">
+          <input type="text" id="searchBox" class="search-box" placeholder="Search description…">
+          <button id="exportCsv" class="primary">Download CSV (categorized)</button>
+          <button id="exportSummary">Download summary CSV</button>
+          <button id="exportRules">Export my custom rules</button>
+          <button id="importRules">Import rules</button>
+          <button id="clearRules" class="ghost">Clear my rules</button>
+          <input type="file" id="rulesFileInput" accept=".json" hidden>
+        </div>
+        <table id="txnTable">
+          <thead>
+            <tr>
+              <th style="width: 90px;">Date</th>
+              <th style="width: 200px;">Category</th>
+              <th>Description</th>
+              <th class="num" style="width: 110px;">Debit</th>
+              <th class="num" style="width: 110px;">Credit</th>
+              <th class="num" style="width: 130px;">Balance</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <details>
+        <summary>🔧 Debug · view extracted raw text + parsing diagnostics</summary>
+        <div class="panel" style="margin-top: 10px;">
+          <p style="font-size: 12px; color: var(--muted);">
+            Use this if categorization looks wrong. You can see the exact text the tool extracted from the PDF
+            and how many transactions/numbers it found.
+          </p>
+          <div id="debugSummary" style="font-size: 12px; margin-bottom: 8px;"></div>
+          <button id="downloadRaw">Download raw extracted text</button>
+          <pre class="raw" id="rawText"></pre>
+        </div>
+      </details>
+    </div>
+
+    <div id="emptyState" class="help" style="margin-top: 18px;">
+      <strong>How this works:</strong><br>
+      1. Drop a GTCO bank statement PDF above. The tool reads it directly in your browser.<br>
+      2. Every transaction is auto-categorized using rules tuned for Baybos's expense narration (the "GAPSLITE" convention).<br>
+      3. If a category is wrong, change the dropdown in the Category column. The tool remembers your choice — next month the same description gets your category automatically.<br>
+      4. Download a categorized CSV for your accounts, or a summary CSV for monthly reporting.
+    </div>
+
+    <p class="footer-note">Baybos Home School · open source · works offline · view source on GitHub</p>
+  </div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>
+  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+  // ========================================================================
+  // CATEGORIES — fixed list (used for dropdowns and exports)
+  // ========================================================================
+  const CATEGORIES = [
+    'School Fees (Parents)',
+    'Other Income',
+    'Refunds',
+    'Payroll & Allowances',
+    'Books & Educational Materials',
+    'Uniforms & Sports',
+    'Sports Day & Events',
+    'Food & Catering',
+    'Maintenance & Construction',
+    'Transport & Fuel',
+    'IT, Internet & Equipment',
+    'Health & First Aid',
+    'Legal & Admin',
+    'Sponsorship & Donations',
+    'Online Shopping',
+    'Bank Charges',
+    'Vendor / Supplier Payment',
+    'POS / Card Purchase',
+    'Other Transfer',
+    'Other Expense',
+    'Uncategorized',
+  ];
+
+  // ========================================================================
+  // BUILT-IN CATEGORIZATION RULES
+  // ========================================================================
+  // Each rule: [regex, category]. First match wins. Order matters — most specific first.
+  // User can override via dropdown; overrides saved to localStorage.
+  const BUILTIN_RULES = [
+    // Bank charges (most distinctive — match first)
+    [/stamp dut/i, 'Bank Charges'],
+    [/commission on nip/i, 'Bank Charges'],
+    [/vatcharges|vat\s?charges/i, 'Bank Charges'],
+    [/maintenance fee|sms notification|account maintenance|sms alert/i, 'Bank Charges'],
+
+    // School-specific (GAPSLITE prefix)
+    [/gapslite (saturday )?allowance/i, 'Payroll & Allowances'],
+    [/gapslite imprest/i, 'Payroll & Allowances'],
+    [/gapslite proprietress/i, 'Payroll & Allowances'],
+    [/gapslite prt payme/i, 'Payroll & Allowances'],
+    [/gapslite refund|gapslite ref( |$)/i, 'Refunds'],
+    [/gapslite books|gapslite paper|gapslite exams remita|gapslite passport pictures/i, 'Books & Educational Materials'],
+    [/gapslite t.?shirt|gapslite sports medals|gapslite cups for sports|gapslite more sports wears|gapslite slippers/i, 'Uniforms & Sports'],
+    [/gapslite chinchin|gapslite drinks for sports|gapslite field use|gapslite practice pitch|gapslite dj|gapslite canopy rental|gapslite balance of rentals/i, 'Sports Day & Events'],
+    [/gapslite food/i, 'Food & Catering'],
+    [/gapslite cement|gapslite gum cement|gapslite bathroom glas|gapslite carpentry|gapslite net doors|gapslite repair of doors|gapslite pipes|gapslite plumbing|gapslite sanitary|gapslite tiler|gapslite switch|gapslite pop cement/i, 'Maintenance & Construction'],
+    [/gapslite oscar bus|gapslite petrol|gapslite transport|gapslite generator/i, 'Transport & Fuel'],
+    [/gapslite laptop|gapslite hard drive|gapslite internet|gapslite card payment|gapslite seat/i, 'IT, Internet & Equipment'],
+    [/gapslite medical|gapslite first aid/i, 'Health & First Aid'],
+    [/gapslite affidavit|gapslite account ope|gapslite exchange for|gapslite requisiti?on/i, 'Legal & Admin'],
+    [/gapslite university sponsor/i, 'Sponsorship & Donations'],
+    [/gapslite jumia/i, 'Online Shopping'],
+    [/gapslite/i, 'Other Expense'],
+
+    // Income — parent fee payments
+    [/mobile trf to gtb.*baybos home school/i, 'School Fees (Parents)'],
+    [/trf frm.*baybos home school/i, 'School Fees (Parents)'],
+    [/school fees|tuition|fees etc/i, 'School Fees (Parents)'],
+
+    // Generic transfer types
+    [/nibss instant payment outward/i, 'Vendor / Supplier Payment'],
+    [/transfer between customers via gapslite/i, 'Vendor / Supplier Payment'],
+    [/transfer between customers/i, 'Other Transfer'],
+    [/^pos|web transfer transaction pos|pos pur|pos web/i, 'POS / Card Purchase'],
+    [/reversal|refund/i, 'Refunds'],
+  ];
+
+  // ========================================================================
+  // USER OVERRIDES — stored in localStorage as { descriptionKey: category }
+  // ========================================================================
+  const OVERRIDE_KEY = 'baybos_statement_overrides_v1';
+
+  function loadOverrides() {
+    try { return JSON.parse(localStorage.getItem(OVERRIDE_KEY) || '{}'); }
+    catch { return {}; }
+  }
+  function saveOverrides(map) {
+    localStorage.setItem(OVERRIDE_KEY, JSON.stringify(map));
+  }
+  function descKey(remarks) {
+    // Stable key for an override: lowercase, normalize whitespace, strip volatile parts (long numbers, references)
+    if (!remarks) return '';
+    return remarks
+      .toLowerCase()
+      .replace(/\d{8,}/g, '#')                // long numeric references → placeholder
+      .replace(/\s+/g, ' ')
+      .trim()
+      .slice(0, 200);
+  }
+
+  function categorize(remarks) {
+    if (!remarks) return 'Uncategorized';
+    const overrides = loadOverrides();
+    const key = descKey(remarks);
+    if (overrides[key]) return overrides[key];
+
+    // Try shorter prefix matches in overrides (so user-set rule applies to family of similar descriptions)
+    const overrideKeys = Object.keys(overrides);
+    for (const ok of overrideKeys) {
+      if (ok.length > 12 && key.includes(ok)) return overrides[ok];
+    }
+
+    for (const [pat, cat] of BUILTIN_RULES) {
+      if (pat.test(remarks)) return cat;
+    }
+    return 'Uncategorized';
+  }
+
+  // ========================================================================
+  // PDF TEXT EXTRACTION — robust with column-aware spacing
+  // ========================================================================
+  async function extractPdfText(file, onProgress) {
+    const arrayBuffer = await file.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    const totalPages = pdf.numPages;
+    let fullText = '';
+    let totalItems = 0;
+
+    for (let p = 1; p <= totalPages; p++) {
+      onProgress && onProgress(p, totalPages);
+      const page = await pdf.getPage(p);
+      const tc = await page.getTextContent();
+      const items = tc.items;
+      totalItems += items.length;
+
+      // Group items by line (y-coordinate, tolerance 2 units)
+      const lineMap = new Map();
+      for (const item of items) {
+        if (!item.str.trim()) continue;
+        const y = Math.round(item.transform[5] / 2) * 2;
+        if (!lineMap.has(y)) lineMap.set(y, []);
+        lineMap.get(y).push({
+          x: item.transform[4],
+          str: item.str,
+          width: item.width || (item.str.length * 5),
+        });
+      }
+
+      // Sort lines top-to-bottom (PDF y-axis is bottom-up, so descending y = top first)
+      const sortedYs = [...lineMap.keys()].sort((a, b) => b - a);
+      for (const y of sortedYs) {
+        const row = lineMap.get(y).sort((a, b) => a.x - b.x);
+        let line = '';
+        let prevEnd = -Infinity;
+        for (const item of row) {
+          if (line) {
+            const gap = item.x - prevEnd;
+            if (gap > 8) {
+              // Big gap = column separator → use multiple spaces
+              const n = Math.min(8, Math.max(2, Math.round(gap / 6)));
+              line += ' '.repeat(n);
+            } else {
+              line += ' ';
+            }
+          }
+          line += item.str;
+          prevEnd = item.x + item.width;
+        }
+        fullText += line + '\n';
+      }
+      fullText += '\n';
+    }
+    return { text: fullText, pages: totalPages, items: totalItems };
+  }
+
+  // ========================================================================
+  // TRANSACTION PARSER — regex-based, robust to layout variations
+  // ========================================================================
+  const MONTHS = '(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)';
+  const TXN_RX = new RegExp(
+    `(\\d{1,2}-${MONTHS}-\\d{4})\\s+(\\d{1,2}-${MONTHS}-\\d{4})`, 'g');
+  const NUM_RX = /\b\d{1,3}(?:,\d{3})+(?:\.\d+)?\b|\b\d+\.\d{2}\b/g;
+  const DATE_IN_TEXT_RX = new RegExp(`\\d{1,2}-${MONTHS}-\\d{4}`, 'g');
+
+  function extractOpeningBalance(text) {
+    const m = text.match(/Opening Balance\s+([\d,]+\.\d+)/i);
+    if (m) return parseFloat(m[1].replace(/,/g, ''));
+    return null;
+  }
+  function extractClosingBalance(text) {
+    const m = text.match(/Closing Balance\s+([\d,]+\.\d+)/i);
+    if (m) return parseFloat(m[1].replace(/,/g, ''));
+    return null;
+  }
+  function extractTotals(text) {
+    const debit = text.match(/Total Debit\s+([\d,]+\.\d+)/i);
+    const credit = text.match(/Total Credit\s+([\d,]+\.\d+)/i);
+    return {
+      totalDebit: debit ? parseFloat(debit[1].replace(/,/g, '')) : null,
+      totalCredit: credit ? parseFloat(credit[1].replace(/,/g, '')) : null,
+    };
+  }
+
+  function parseGtcoText(rawText) {
+    // Find all transaction starts
+    const matches = [];
+    let m;
+    TXN_RX.lastIndex = 0;
+    while ((m = TXN_RX.exec(rawText)) !== null) {
+      matches.push({
+        idx: m.index, len: m[0].length,
+        transDate: m[1], valueDate: m[2],
+      });
+    }
+
+    if (matches.length === 0) return { txns: [], openingBalance: null, closingBalance: null };
+
+    const txns = [];
+    for (let i = 0; i < matches.length; i++) {
+      const start = matches[i];
+      const end = i + 1 < matches.length ? matches[i + 1].idx : rawText.length;
+      const chunkStart = start.idx + start.len;
+      const chunk = rawText.substring(chunkStart, end);
+
+      // Extract numbers (skip any dates that might appear in text)
+      const noTextDates = chunk.replace(DATE_IN_TEXT_RX, ' ');
+      const nums = [];
+      let nm;
+      NUM_RX.lastIndex = 0;
+      while ((nm = NUM_RX.exec(noTextDates)) !== null) {
+        nums.push(parseFloat(nm[0].replace(/,/g, '')));
+      }
+
+      let amount = 0, balance = 0;
+      if (nums.length >= 2) {
+        balance = nums[nums.length - 1];
+        amount = nums[nums.length - 2];
+      } else if (nums.length === 1) {
+        balance = nums[0];
+      }
+
+      // Remarks = text with numbers and dates stripped, whitespace normalized
+      const remarks = chunk
+        .replace(DATE_IN_TEXT_RX, ' ')
+        .replace(NUM_RX, ' ')
+        .replace(/[\r\n]+/g, ' ')
+        .replace(/\s+/g, ' ')
+        .replace(/^[\s'`]+|[\s'`]+$/g, '')
+        .trim();
+
+      txns.push({
+        transDate: start.transDate,
+        valueDate: start.valueDate,
+        remarks,
+        balance,
+        debit: 0,
+        credit: 0,
+        _amount: amount,
+      });
+    }
+
+    // Resolve debit vs credit using balance trend
+    const openingBalance = extractOpeningBalance(rawText);
+    let priorBalance = openingBalance;
+
+    for (let i = 0; i < txns.length; i++) {
+      const t = txns[i];
+      if (t._amount === 0) {
+        priorBalance = t.balance;
+        continue;
+      }
+      if (priorBalance !== null) {
+        const ifDebit = priorBalance - t._amount;
+        const ifCredit = priorBalance + t._amount;
+        if (Math.abs(ifDebit - t.balance) < Math.abs(ifCredit - t.balance)) {
+          t.debit = t._amount;
+        } else {
+          t.credit = t._amount;
+        }
+      } else {
+        // No prior — try the next transaction
+        if (i + 1 < txns.length) {
+          const next = txns[i + 1];
+          const ifDebit = t.balance + next._amount;
+          const ifCredit = t.balance - next._amount;
+          if (Math.abs(ifDebit - next.balance) < Math.abs(ifCredit - next.balance)) {
+            t.credit = t._amount;
+          } else {
+            t.debit = t._amount;
+          }
+        } else {
+          t.debit = t._amount;
+        }
+      }
+      priorBalance = t.balance;
+      delete t._amount;
+    }
+
+    return {
+      txns,
+      openingBalance,
+      closingBalance: extractClosingBalance(rawText),
+      totals: extractTotals(rawText),
+    };
+  }
+
+  // ========================================================================
+  // RENDER
+  // ========================================================================
+  let state = {
+    txns: [],
+    openingBalance: null,
+    closingBalance: null,
+    totals: null,
+    rawText: '',
+    filter: 'all',
+    search: '',
+  };
+
+  const fmt = n => (Math.round(n * 100) / 100).toLocaleString(undefined, {
+    minimumFractionDigits: 2, maximumFractionDigits: 2,
+  });
+  const fmtShort = n => '₦' + Math.round(n || 0).toLocaleString();
+
+  function recategorizeAll() {
+    state.txns.forEach(t => { t.category = categorize(t.remarks); });
+  }
+
+  function render() {
+    recategorizeAll();
+
+    const totalDebit = state.txns.reduce((s, t) => s + t.debit, 0);
+    const totalCredit = state.txns.reduce((s, t) => s + t.credit, 0);
+    const net = totalCredit - totalDebit;
+    const opening = state.openingBalance;
+    const closing = state.closingBalance !== null ? state.closingBalance : (state.txns.length ? state.txns[state.txns.length - 1].balance : 0);
+
+    // Summary
+    const totalsValidation = state.totals && state.totals.totalDebit && state.totals.totalCredit
+      ? (Math.abs(totalDebit - state.totals.totalDebit) < 1 && Math.abs(totalCredit - state.totals.totalCredit) < 1 ? '✓ matches header' : '⚠ header mismatch')
+      : '';
+    document.getElementById('summary').innerHTML = `
+      <div class="stat"><div class="label">Transactions</div><div class="value">${state.txns.length}</div></div>
+      <div class="stat"><div class="label">Total credits</div><div class="value" style="color:var(--green)">${fmtShort(totalCredit)}</div><div style="font-size:10px;color:var(--muted)">${totalsValidation}</div></div>
+      <div class="stat"><div class="label">Total debits</div><div class="value" style="color:var(--accent)">${fmtShort(totalDebit)}</div></div>
+      <div class="stat"><div class="label">Net movement</div><div class="value" style="color:${net >= 0 ? 'var(--green)' : 'var(--accent)'}">${net >= 0 ? '+' : ''}${fmtShort(net)}</div></div>
+      <div class="stat"><div class="label">Opening → Closing</div><div class="value" style="font-size:13px">${opening !== null ? fmtShort(opening) : '?'} → ${fmtShort(closing)}</div></div>
+    `;
+
+    // Expense breakdown
+    const expByCat = {}, incByCat = {};
+    state.txns.forEach(t => {
+      if (t.debit > 0) {
+        expByCat[t.category] = expByCat[t.category] || { amount: 0, count: 0 };
+        expByCat[t.category].amount += t.debit;
+        expByCat[t.category].count += 1;
+      }
+      if (t.credit > 0) {
+        incByCat[t.category] = incByCat[t.category] || { amount: 0, count: 0 };
+        incByCat[t.category].amount += t.credit;
+        incByCat[t.category].count += 1;
+      }
+    });
+
+    const expTbody = document.querySelector('#expenseTable tbody');
+    expTbody.innerHTML = '';
+    Object.entries(expByCat).sort((a, b) => b[1].amount - a[1].amount).forEach(([cat, data]) => {
+      const pct = totalDebit ? (data.amount / totalDebit * 100).toFixed(1) : '0.0';
+      expTbody.innerHTML += `
+        <tr><td><span class="pill">${cat}</span></td>
+            <td class="num debit">${fmtShort(data.amount)}</td>
+            <td class="num">${data.count}</td>
+            <td><div class="bar-row"><div class="bar"><div class="bar-fill debit" style="width:${pct}%"></div></div><span style="font-size:11px;color:var(--muted)">${pct}%</span></div></td>
+        </tr>`;
+    });
+
+    const incTbody = document.querySelector('#incomeTable tbody');
+    incTbody.innerHTML = '';
+    Object.entries(incByCat).sort((a, b) => b[1].amount - a[1].amount).forEach(([cat, data]) => {
+      const pct = totalCredit ? (data.amount / totalCredit * 100).toFixed(1) : '0.0';
+      incTbody.innerHTML += `
+        <tr><td><span class="pill" style="background:#d1fae5">${cat}</span></td>
+            <td class="num credit">${fmtShort(data.amount)}</td>
+            <td class="num">${data.count}</td>
+            <td><div class="bar-row"><div class="bar"><div class="bar-fill credit" style="width:${pct}%"></div></div><span style="font-size:11px;color:var(--muted)">${pct}%</span></div></td>
+        </tr>`;
+    });
+
+    // Override count
+    const overrides = loadOverrides();
+    const overrideCountEl = document.getElementById('overrideCount');
+    const oc = Object.keys(overrides).length;
+    overrideCountEl.innerHTML = oc > 0 ? `<span class="badge">${oc} custom rule${oc > 1 ? 's' : ''}</span>` : '';
+
+    // Filter chips
+    const allCats = [...new Set(state.txns.map(t => t.category))].sort();
+    const filtersEl = document.getElementById('catFilters');
+    filtersEl.innerHTML = `<button data-cat="all" class="${state.filter === 'all' ? 'active' : ''}">All (${state.txns.length})</button>` +
+      allCats.map(c => {
+        const n = state.txns.filter(t => t.category === c).length;
+        return `<button data-cat="${c}" class="${state.filter === c ? 'active' : ''}">${c} (${n})</button>`;
+      }).join('');
+    filtersEl.querySelectorAll('button').forEach(btn => {
+      btn.addEventListener('click', () => {
+        state.filter = btn.dataset.cat;
+        render();
+      });
+    });
+
+    renderTxnTable();
+    document.getElementById('results').classList.remove('hidden');
+    document.getElementById('emptyState').classList.add('hidden');
+  }
+
+  function renderTxnTable() {
+    const tbody = document.querySelector('#txnTable tbody');
+    tbody.innerHTML = '';
+    let filtered = state.txns;
+    if (state.filter !== 'all') filtered = filtered.filter(t => t.category === state.filter);
+    if (state.search) {
+      const s = state.search.toLowerCase();
+      filtered = filtered.filter(t => (t.remarks || '').toLowerCase().includes(s));
+    }
+    const overrides = loadOverrides();
+
+    filtered.forEach((t, idx) => {
+      const txnIdx = state.txns.indexOf(t);
+      const isOverridden = overrides[descKey(t.remarks)] !== undefined;
+      const selectOpts = CATEGORIES.map(c =>
+        `<option value="${c}" ${c === t.category ? 'selected' : ''}>${c}</option>`
+      ).join('');
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>${t.transDate}</td>
+        <td>
+          <select class="category-select ${isOverridden ? 'modified' : ''}" data-idx="${txnIdx}">
+            ${selectOpts}
+          </select>
+        </td>
+        <td style="max-width: 540px; font-size: 11px;">${escapeHtml((t.remarks || '').slice(0, 220))}</td>
+        <td class="num debit">${t.debit ? fmtShort(t.debit) : ''}</td>
+        <td class="num credit">${t.credit ? fmtShort(t.credit) : ''}</td>
+        <td class="num" style="color:var(--muted)">${fmtShort(t.balance)}</td>
+      `;
+      tbody.appendChild(row);
+    });
+
+    // Wire up category-select change events
+    tbody.querySelectorAll('.category-select').forEach(sel => {
+      sel.addEventListener('change', (e) => {
+        const idx = parseInt(e.target.dataset.idx, 10);
+        const t = state.txns[idx];
+        const newCat = e.target.value;
+        const ov = loadOverrides();
+        ov[descKey(t.remarks)] = newCat;
+        saveOverrides(ov);
+        render();
+      });
+    });
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  }
+
+  function toggleSection(id) {
+    const tbody = document.querySelector(`#${id} tbody`);
+    tbody.classList.toggle('hidden');
+  }
+
+  // ========================================================================
+  // CSV EXPORT
+  // ========================================================================
+  function csvEscape(v) {
+    if (v === null || v === undefined) return '';
+    const s = String(v).replace(/"/g, '""');
+    return `"${s}"`;
+  }
+
+  function exportCategorized() {
+    const rows = [['Trans Date', 'Value Date', 'Category', 'Description', 'Debit (NGN)', 'Credit (NGN)', 'Balance (NGN)']];
+    state.txns.forEach(t => {
+      rows.push([t.transDate, t.valueDate, t.category, t.remarks, t.debit || '', t.credit || '', t.balance]);
+    });
+    const csv = rows.map(r => r.map(csvEscape).join(',')).join('\n');
+    download('baybos-statement-categorized.csv', csv, 'text/csv');
+  }
+
+  function exportSummary() {
+    const totalDebit = state.txns.reduce((s, t) => s + t.debit, 0);
+    const totalCredit = state.txns.reduce((s, t) => s + t.credit, 0);
+    const expByCat = {}, incByCat = {};
+    state.txns.forEach(t => {
+      if (t.debit > 0) expByCat[t.category] = (expByCat[t.category] || 0) + t.debit;
+      if (t.credit > 0) incByCat[t.category] = (incByCat[t.category] || 0) + t.credit;
+    });
+    const rows = [['Type', 'Category', 'Amount (NGN)', '% of Total']];
+    Object.entries(incByCat).sort((a, b) => b[1] - a[1]).forEach(([c, a]) => {
+      rows.push(['Income', c, a.toFixed(2), totalCredit ? (a / totalCredit * 100).toFixed(1) + '%' : '']);
+    });
+    Object.entries(expByCat).sort((a, b) => b[1] - a[1]).forEach(([c, a]) => {
+      rows.push(['Expense', c, a.toFixed(2), totalDebit ? (a / totalDebit * 100).toFixed(1) + '%' : '']);
+    });
+    const csv = rows.map(r => r.map(csvEscape).join(',')).join('\n');
+    download('baybos-statement-summary.csv', csv, 'text/csv');
+  }
+
+  function exportRules() {
+    const ov = loadOverrides();
+    const blob = JSON.stringify({ version: 1, exported_at: new Date().toISOString(), overrides: ov }, null, 2);
+    download('baybos-custom-rules.json', blob, 'application/json');
+  }
+
+  function importRulesFile(file) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const data = JSON.parse(e.target.result);
+        if (data.overrides) {
+          saveOverrides({ ...loadOverrides(), ...data.overrides });
+          render();
+          alert(`Imported ${Object.keys(data.overrides).length} custom rules.`);
+        } else {
+          alert('No "overrides" key in file.');
+        }
+      } catch (err) {
+        alert('Could not parse JSON: ' + err.message);
+      }
+    };
+    reader.readAsText(file);
+  }
+
+  function clearRules() {
+    if (confirm('Remove all your custom category overrides? (Built-in rules stay.)')) {
+      saveOverrides({});
+      render();
+    }
+  }
+
+  function download(name, content, mime) {
+    const blob = new Blob([content], { type: mime + ';charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  // ========================================================================
+  // FILE HANDLING
+  // ========================================================================
+  const drop = document.getElementById('drop');
+  const fileInput = document.getElementById('fileInput');
+  const statusEl = document.getElementById('status');
+  const progressEl = document.getElementById('progress');
+  const progressBar = document.getElementById('progressBar');
+
+  drop.addEventListener('click', () => fileInput.click());
+  drop.addEventListener('dragover', e => { e.preventDefault(); drop.classList.add('drag-over'); });
+  drop.addEventListener('dragleave', () => drop.classList.remove('drag-over'));
+  drop.addEventListener('drop', e => {
+    e.preventDefault();
+    drop.classList.remove('drag-over');
+    if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
+  });
+  fileInput.addEventListener('change', e => {
+    if (e.target.files[0]) handleFile(e.target.files[0]);
+  });
+  document.getElementById('exportCsv').addEventListener('click', exportCategorized);
+  document.getElementById('exportSummary').addEventListener('click', exportSummary);
+  document.getElementById('exportRules').addEventListener('click', exportRules);
+  document.getElementById('importRules').addEventListener('click', () => document.getElementById('rulesFileInput').click());
+  document.getElementById('rulesFileInput').addEventListener('change', e => {
+    if (e.target.files[0]) importRulesFile(e.target.files[0]);
+  });
+  document.getElementById('clearRules').addEventListener('click', clearRules);
+  document.getElementById('searchBox').addEventListener('input', e => {
+    state.search = e.target.value;
+    renderTxnTable();
+  });
+  document.getElementById('downloadRaw').addEventListener('click', () => {
+    download('baybos-statement-rawtext.txt', state.rawText, 'text/plain');
+  });
+
+  async function handleFile(file) {
+    statusEl.textContent = `Reading ${file.name} (${(file.size / 1024).toFixed(1)} KB)…`;
+    progressEl.classList.remove('hidden');
+    progressBar.style.width = '5%';
+    try {
+      const extracted = await extractPdfText(file, (p, total) => {
+        progressBar.style.width = `${10 + 70 * p / total}%`;
+        statusEl.textContent = `Reading page ${p} of ${total}…`;
+      });
+      progressBar.style.width = '85%';
+      statusEl.textContent = `Extracted ${extracted.text.split('\n').length} lines from ${extracted.pages} page(s). Parsing transactions…`;
+      const parsed = parseGtcoText(extracted.text);
+      state.txns = parsed.txns;
+      state.openingBalance = parsed.openingBalance;
+      state.closingBalance = parsed.closingBalance;
+      state.totals = parsed.totals;
+      state.rawText = extracted.text;
+
+      document.getElementById('rawText').textContent = extracted.text.slice(0, 50000);
+      document.getElementById('debugSummary').innerHTML = `
+        Pages: ${extracted.pages} · Items: ${extracted.items} · Lines: ${extracted.text.split('\n').length} ·
+        Transactions parsed: <strong>${parsed.txns.length}</strong> ·
+        Opening: ${parsed.openingBalance !== null ? fmtShort(parsed.openingBalance) : 'unknown'} ·
+        Closing: ${parsed.closingBalance !== null ? fmtShort(parsed.closingBalance) : 'unknown'}
+      `;
+
+      progressBar.style.width = '100%';
+      statusEl.textContent = `✓ Parsed ${parsed.txns.length} transactions from ${extracted.pages} pages.`;
+      render();
+      setTimeout(() => progressEl.classList.add('hidden'), 500);
+    } catch (err) {
+      statusEl.textContent = `Error: ${err.message}`;
+      progressEl.classList.add('hidden');
+      console.error(err);
+    }
+  }
+</script>
+</body>
+</html>
